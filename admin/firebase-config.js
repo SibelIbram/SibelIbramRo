@@ -1,0 +1,66 @@
+// Firebase Configuration
+// TODO: Replace with your Firebase project credentials
+// Get these from: https://console.firebase.google.com/
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+// Initialize Firebase
+let firebaseInitialized = false;
+let auth = null;
+let db = null;
+let storage = null;
+
+try {
+  // Check if config has placeholder values
+  if (firebaseConfig.apiKey === 'YOUR_API_KEY' || firebaseConfig.projectId === 'YOUR_PROJECT_ID') {
+    console.log("Firebase config has placeholder values. Using demo mode (localStorage).");
+    console.log("To use Firebase, update admin/firebase-config.js with your credentials from: https://console.firebase.google.com/");
+    firebaseInitialized = false;
+  } else {
+    firebase.initializeApp(firebaseConfig);
+    console.log("Firebase initialized successfully");
+    firebaseInitialized = true;
+    auth = firebase.auth();
+    db = firebase.firestore();
+    // Initialize Firebase Storage
+    try {
+      storage = firebase.storage();
+      console.log("Firebase Storage initialized");
+    } catch (storageError) {
+      console.warn("Firebase Storage not available:", storageError);
+      storage = null;
+    }
+  }
+} catch (error) {
+  console.error("Firebase initialization error:", error);
+  if (error.code === 'app/duplicate-app') {
+    console.log("Firebase app already initialized");
+    firebaseInitialized = true;
+    auth = firebase.auth();
+    db = firebase.firestore();
+    // Try to get storage if app already exists
+    try {
+      storage = firebase.storage();
+      console.log("Firebase Storage initialized");
+    } catch (storageError) {
+      console.warn("Firebase Storage not available:", storageError);
+      storage = null;
+    }
+  } else {
+    console.log("Firebase configuration error. Using demo mode (localStorage).");
+    firebaseInitialized = false;
+  }
+}
+
+// Collections
+const TRAININGS_COLLECTION = 'trainings';
+const SPEAKING_COLLECTION = 'speaking';
+const PUBLICATIONS_COLLECTION = 'publications';
+

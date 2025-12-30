@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publication Details - Sibel Ibram</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .detail-container {
+            max-width: 900px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+        .detail-header {
+            margin-bottom: 2rem;
+        }
+        .detail-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        .detail-meta {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+        .detail-category {
+            display: inline-block;
+            background: #061572;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            margin-left: 1rem;
+        }
+        .detail-image {
+            width: 100%;
+            max-height: 500px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        .detail-description {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+        .detail-content {
+            line-height: 1.8;
+            font-size: 1.1rem;
+            color: #333;
+            white-space: pre-wrap;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: #061572;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: #666;
+        }
+        .error {
+            text-align: center;
+            padding: 4rem;
+            color: #e74c3c;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo-container">
+                <a href="index.html">
+                    <img src="images/MainLogo.jpg" alt="Logo" class="logo" id="logo">
+                </a>
+            </div>
+            <nav class="nav-menu">
+                <a href="index.html#publications" class="nav-btn">← Back to Publications</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="detail-container">
+            <div id="loading" class="loading">
+                <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #061572; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                <p>Loading publication details...</p>
+            </div>
+            <div id="error" class="error" style="display: none;">
+                <p>Publication not found or error loading content.</p>
+                <a href="index.html#publications" class="back-link">← Back to Publications</a>
+            </div>
+            <div id="content" style="display: none;">
+                <a href="index.html#publications" class="back-link">← Back to Publications</a>
+                <div class="detail-header">
+                    <h1 class="detail-title" id="detailTitle"></h1>
+                    <div class="detail-meta" id="detailMeta"></div>
+                </div>
+                <img id="detailImage" class="detail-image" src="" alt="" style="display: none;">
+                <p class="detail-description" id="detailDescription"></p>
+                <div class="detail-content" id="detailContent"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 data-i18n="footer-connect">Connect</h3>
+                    <div class="social-links">
+                        <a href="https://www.linkedin.com/in/sibel-ibram-899ba015/" target="_blank" rel="noopener noreferrer" class="social-link">LinkedIn</a>
+                        <a href="mailto:sibel_ibram@icloud.com" class="social-link">Email</a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer-contact">Contact</h3>
+                    <p>Email: sibel_ibram@icloud.com</p>
+                    <p>Phone: +40733089124</p>
+                    <p>Location: Bucharest, Romania</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Sibel Ibram. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK (for content loading) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase Config -->
+    <script src="admin/firebase-config.js"></script>
+    
+    <!-- Detail Page Loader -->
+    <script src="publication-detail-loader.js"></script>
+</body>
+</html>
+
+
+
+

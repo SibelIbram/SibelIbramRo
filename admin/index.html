@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Sibel Ibram Website</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #061572 0%, #2c3e50 100%);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .admin-container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 1400px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+
+    .admin-header {
+      background: linear-gradient(135deg, #061572, #2c3e50);
+      color: white;
+      padding: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .admin-header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    .logout-btn {
+      background: rgba(255,255,255,0.2);
+      border: 2px solid white;
+      color: white;
+      padding: 0.6rem 1.5rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: white;
+      color: #061572;
+    }
+
+    .login-container {
+      max-width: 400px;
+      width: 100%;
+      background: white;
+      padding: 3rem;
+      border-radius: 15px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      margin: 0 auto;
+    }
+
+    .login-container h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #2c3e50;
+      font-weight: 600;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 0.8rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 5px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+      font-family: inherit;
+    }
+
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: #061572;
+    }
+
+    .form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, #061572, #2c3e50);
+      color: white;
+      padding: 1rem;
+      border: none;
+      border-radius: 5px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .admin-content {
+      padding: 2rem;
+    }
+
+    .admin-nav {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .admin-nav button {
+      background: none;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .admin-nav button.active {
+      color: #061572;
+      border-bottom-color: #061572;
+    }
+
+    .admin-nav button:hover {
+      color: #061572;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .category-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .category-tab {
+      padding: 0.8rem 1.5rem;
+      border: 2px solid #061572;
+      background: white;
+      color: #061572;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .category-tab:hover {
+      background: #f0f0f0;
+    }
+
+    .category-tab.active {
+      background: #061572;
+      color: white;
+    }
+
+    .posts-list {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .post-item {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 1.5rem;
+      transition: all 0.3s;
+    }
+
+    .post-item:hover {
+      border-color: #061572;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .post-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .post-info h3 {
+      margin: 0 0 0.5rem 0;
+      color: #2c3e50;
+    }
+
+    .post-meta {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.9rem;
+      color: #666;
+      flex-wrap: wrap;
+    }
+
+    .post-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-small {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+    }
+
+    .btn-edit {
+      background: #061572;
+      color: white;
+    }
+
+    .btn-edit:hover {
+      background: #0a1f8a;
+    }
+
+    .btn-delete {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .btn-delete:hover {
+      background: #c0392b;
+    }
+
+    .btn-publish {
+      background: #27ae60;
+      color: white;
+    }
+
+    .btn-publish:hover {
+      background: #229954;
+    }
+
+    .alert {
+      padding: 1rem;
+      border-radius: 5px;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .alert-error {
+      background: #fee;
+      color: #c00;
+      border: 2px solid #c00;
+    }
+
+    .alert-success {
+      background: #efe;
+      color: #0a0;
+      border: 2px solid #0a0;
+    }
+
+    .alert-info {
+      background: #eef;
+      color: #00a;
+      border: 2px solid #00a;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: #666;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #061572;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .link-input-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .link-input-group input {
+      flex: 1;
+    }
+
+    .link-input-group button {
+      padding: 0.5rem 1rem;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .file-upload-label {
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      background: linear-gradient(135deg, #061572, #2c3e50);
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 0.3s;
+      margin-bottom: 0.5rem;
+    }
+
+    .file-upload-label:hover {
+      transform: translateY(-2px);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Screen -->
+  <div id="loginScreen" class="login-container">
+    <h2>🔐 Admin Login</h2>
+    <div id="loginAlert"></div>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" required placeholder="your-email@example.com">
+      </div>
+      <div class="form-group">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" required placeholder="Enter your password">
+      </div>
+      <button type="submit" class="btn-primary">Login</button>
+    </form>
+    <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 5px; padding: 1rem; margin-top: 1rem; text-align: center;">
+      <strong>🧪 Demo Mode</strong><br>
+      <small style="color: #856404;">
+        Email: <code>demo@test.com</code><br>
+        Password: <code>demo123</code><br>
+        (Posts saved in browser only)
+      </small>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <div id="adminDashboard" class="admin-container hidden">
+    <div class="admin-header">
+      <h1>📝 Admin Dashboard - Sibel Ibram</h1>
+      <div>
+        <span id="userEmail" style="margin-right: 1rem; opacity: 0.9;"></span>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="admin-content">
+      <nav class="admin-nav">
+        <button class="active" onclick="switchCategory('trainings', this)">Trainings</button>
+        <button onclick="switchCategory('speaking', this)">Speaking</button>
+        <button onclick="switchCategory('publications', this)">Publications</button>
+      </nav>
+
+      <!-- Trainings Tab -->
+      <div id="trainingsTab" class="tab-content active">
+        <div class="category-tabs">
+          <button class="category-tab active" onclick="switchTab('trainings', 'list')">All Trainings</button>
+          <button class="category-tab" onclick="switchTab('trainings', 'new')">New Training</button>
+        </div>
+        
+        <div id="trainingsListTab" class="tab-content active">
+          <div id="trainingsAlert"></div>
+          <div id="trainingsList" class="posts-list">
+            <div class="loading">
+              <div class="spinner"></div>
+              <p>Loading trainings...</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="trainingsNewTab" class="tab-content">
+          <div id="trainingsFormAlert"></div>
+          <form id="trainingsForm">
+            <input type="hidden" id="trainingId">
+            <div class="form-group">
+              <label for="trainingTitle">Title <span style="color: red;">*</span></label>
+              <input type="text" id="trainingTitle" required placeholder="Training Title">
+            </div>
+            <div class="form-group">
+              <label for="trainingDescription">Description <span style="color: red;">*</span></label>
+              <textarea id="trainingDescription" required placeholder="Short description for the tile (shown on main page)"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="trainingContent">Content</label>
+              <div style="margin-bottom: 0.5rem;">
+                <input type="file" id="trainingDocxUpload" accept=".docx" style="display: none;" onchange="handleDocxUpload(event, 'training')">
+                <label for="trainingDocxUpload" class="file-upload-label">📄 Upload .docx File</label>
+                <span id="trainingDocxStatus" style="margin-left: 1rem; color: #666; font-size: 0.9rem;"></span>
+              </div>
+              <textarea id="trainingContent" placeholder="Full content (shown on detail page, or upload .docx file above)" style="min-height: 300px;"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="trainingImage">Image</label>
+              <div style="margin-bottom: 0.5rem;">
+                <input type="file" id="trainingImageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event, 'training')">
+                <label for="trainingImageUpload" class="file-upload-label">📷 Upload Image</label>
+                <span id="trainingImageStatus" style="margin-left: 1rem; color: #666; font-size: 0.9rem;"></span>
+              </div>
+              <input type="url" id="trainingImage" placeholder="Or enter image URL: https://example.com/image.jpg or images/training.jpg">
+              <small style="color: #666; display: block; margin-top: 0.3rem;">Upload a local image file or provide a URL</small>
+            </div>
+            <div class="form-group">
+              <label for="trainingDate">Date</label>
+              <input type="date" id="trainingDate" placeholder="Training date">
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox" id="trainingPublished">
+                Publish immediately
+              </label>
+            </div>
+            <button type="submit" class="btn-primary">Save Training</button>
+            <button type="button" class="btn-primary" onclick="publishAndSave('trainings')" style="background: #27ae60; margin-top: 0.5rem;">🌐 Save & Publish</button>
+            <button type="button" class="btn-primary" onclick="cancelEdit('trainings')" style="background: #95a5a6; margin-top: 0.5rem;">Cancel</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Speaking Tab -->
+      <div id="speakingTab" class="tab-content">
+        <div class="category-tabs">
+          <button class="category-tab active" onclick="switchTab('speaking', 'list')">All Speaking Events</button>
+          <button class="category-tab" onclick="switchTab('speaking', 'new')">New Speaking Event</button>
+        </div>
+        
+        <div id="speakingListTab" class="tab-content active">
+          <div id="speakingAlert"></div>
+          <div id="speakingList" class="posts-list">
+            <div class="loading">
+              <div class="spinner"></div>
+              <p>Loading speaking events...</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="speakingNewTab" class="tab-content">
+          <div id="speakingFormAlert"></div>
+          <form id="speakingForm">
+            <input type="hidden" id="speakingId">
+            <div class="form-group">
+              <label for="speakingTitle">Title <span style="color: red;">*</span></label>
+              <input type="text" id="speakingTitle" required placeholder="Event Title">
+            </div>
+            <div class="form-group">
+              <label for="speakingLocation">Location <span style="color: red;">*</span></label>
+              <input type="text" id="speakingLocation" required placeholder="City, Country">
+            </div>
+            <div class="form-group">
+              <label for="speakingDate">Date <span style="color: red;">*</span></label>
+              <input type="text" id="speakingDate" required placeholder="e.g., October 2025">
+            </div>
+            <div class="form-group">
+              <label for="speakingDescription">Description <span style="color: red;">*</span></label>
+              <textarea id="speakingDescription" required placeholder="Description of the speaking engagement"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="speakingImage">Image</label>
+              <div style="margin-bottom: 0.5rem;">
+                <input type="file" id="speakingImageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event, 'speaking')">
+                <label for="speakingImageUpload" class="file-upload-label">📷 Upload Image</label>
+                <span id="speakingImageStatus" style="margin-left: 1rem; color: #666; font-size: 0.9rem;"></span>
+              </div>
+              <input type="url" id="speakingImage" placeholder="Or enter image URL: https://example.com/image.jpg or images/speaking.jpg">
+              <small style="color: #666; display: block; margin-top: 0.3rem;">Upload a local image file or provide a URL</small>
+            </div>
+            <div class="form-group">
+              <label>Links (optional)</label>
+              <div id="speakingLinksContainer">
+                <div class="link-input-group">
+                  <input type="url" class="speaking-link-input" placeholder="https://example.com/link">
+                  <button type="button" onclick="removeLink(this)" class="btn-small btn-delete">Remove</button>
+                </div>
+              </div>
+              <button type="button" onclick="addLink()" class="btn-small" style="background: #27ae60; color: white; margin-top: 0.5rem;">+ Add Link</button>
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox" id="speakingPublished">
+                Publish immediately
+              </label>
+            </div>
+            <button type="submit" class="btn-primary">Save Speaking Event</button>
+            <button type="button" class="btn-primary" onclick="publishAndSave('speaking')" style="background: #27ae60; margin-top: 0.5rem;">🌐 Save & Publish</button>
+            <button type="button" class="btn-primary" onclick="cancelEdit('speaking')" style="background: #95a5a6; margin-top: 0.5rem;">Cancel</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Publications Tab -->
+      <div id="publicationsTab" class="tab-content">
+        <div class="category-tabs">
+          <button class="category-tab active" onclick="switchTab('publications', 'list')">All Publications</button>
+          <button class="category-tab" onclick="switchTab('publications', 'new')">New Publication</button>
+        </div>
+        
+        <div id="publicationsListTab" class="tab-content active">
+          <div id="publicationsAlert"></div>
+          <div id="publicationsList" class="posts-list">
+            <div class="loading">
+              <div class="spinner"></div>
+              <p>Loading publications...</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="publicationsNewTab" class="tab-content">
+          <div id="publicationsFormAlert"></div>
+          <form id="publicationsForm">
+            <input type="hidden" id="publicationId">
+            <div class="form-group">
+              <label for="publicationTitle">Title <span style="color: red;">*</span></label>
+              <input type="text" id="publicationTitle" required placeholder="Publication Title">
+            </div>
+            <div class="form-group">
+              <label for="publicationDate">Date <span style="color: red;">*</span></label>
+              <input type="date" id="publicationDate" required>
+            </div>
+            <div class="form-group">
+              <label for="publicationCategory">Category</label>
+              <input type="text" id="publicationCategory" placeholder="Category name">
+            </div>
+            <div class="form-group">
+              <label for="publicationExcerpt">Description <span style="color: red;">*</span></label>
+              <textarea id="publicationExcerpt" required placeholder="Short description for the tile (shown on main page)"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="publicationContent">Content</label>
+              <div style="margin-bottom: 0.5rem;">
+                <input type="file" id="publicationDocxUpload" accept=".docx" style="display: none;" onchange="handleDocxUpload(event, 'publication')">
+                <label for="publicationDocxUpload" class="file-upload-label">📄 Upload .docx File</label>
+                <span id="publicationDocxStatus" style="margin-left: 1rem; color: #666; font-size: 0.9rem;"></span>
+              </div>
+              <textarea id="publicationContent" placeholder="Full content (or upload .docx file above)" style="min-height: 300px;"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="publicationImage">Image</label>
+              <div style="margin-bottom: 0.5rem;">
+                <input type="file" id="publicationImageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event, 'publication')">
+                <label for="publicationImageUpload" class="file-upload-label">📷 Upload Image</label>
+                <span id="publicationImageStatus" style="margin-left: 1rem; color: #666; font-size: 0.9rem;"></span>
+              </div>
+              <input type="url" id="publicationImage" placeholder="Or enter image URL: https://example.com/image.jpg or images/publication.jpg">
+              <small style="color: #666; display: block; margin-top: 0.3rem;">Upload a local image file or provide a URL</small>
+            </div>
+            <div class="form-group">
+              <label for="publicationReadMore">Read More Link (optional)</label>
+              <input type="url" id="publicationReadMore" placeholder="https://example.com/read-more">
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox" id="publicationPublished">
+                Publish immediately
+              </label>
+            </div>
+            <button type="submit" class="btn-primary">Save Publication</button>
+            <button type="button" class="btn-primary" onclick="publishAndSave('publications')" style="background: #27ae60; margin-top: 0.5rem;">🌐 Save & Publish</button>
+            <button type="button" class="btn-primary" onclick="cancelEdit('publications')" style="background: #95a5a6; margin-top: 0.5rem;">Cancel</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+  
+  <!-- Firebase Config -->
+  <script src="firebase-config.js"></script>
+  
+  <!-- Mammoth.js for .docx file conversion -->
+  <script src="mammoth.browser.min.js"></script>
+  
+  <!-- Admin App -->
+  <script src="admin-app.js"></script>
+</body>
+</html>
+
