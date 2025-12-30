@@ -1,0 +1,5 @@
+# Netlify redirects for client-side routing
+/training-detail.html  /training-detail.html  200
+/publication-detail.html  /publication-detail.html  200
+/admin/*  /admin/index.html  200
+

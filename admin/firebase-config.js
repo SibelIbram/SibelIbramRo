@@ -3,12 +3,12 @@
 // Get these from: https://console.firebase.google.com/
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBmKyW035l88FTu1H9BorQ3ftrhlGFWu9w",
+  authDomain: "sibram.firebaseapp.com",
+  projectId: "sibram",
+  storageBucket: "sibram.firebasestorage.app",
+  messagingSenderId: "296315358166",
+  appId: "1:296315358166:web:2dbf9e87992907a519b277"
 };
 
 // Initialize Firebase
