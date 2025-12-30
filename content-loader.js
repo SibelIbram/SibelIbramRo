@@ -13,6 +13,129 @@ const PUBLICATIONS_COLLECTION_NAME = typeof PUBLICATIONS_COLLECTION !== 'undefin
 
 let contentLoaded = false;
 
+// Markdown to HTML renderer
+function formatMarkdownContent(content) {
+  if (!content) return '';
+  
+  let text = content;
+  
+  // First, handle alignment tags [left], [center], [right] - must come very early
+  text = text.replace(/\[left\]\s*([\s\S]*?)\s*\[\/left\]/g, '<div style="text-align: left;">$1</div>');
+  text = text.replace(/\[center\]\s*([\s\S]*?)\s*\[\/center\]/g, '<div style="text-align: center;">$1</div>');
+  text = text.replace(/\[right\]\s*([\s\S]*?)\s*\[\/right\]/g, '<div style="text-align: right;">$1</div>');
+  
+  // Handle headers (##, ###, etc.) - after alignment
+  text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  text = text.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  text = text.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  
+  // Handle links [text](url) - before other formatting
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  
+  // Handle bold **text** - must come before italic to avoid conflicts
+  text = text.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+  
+  // IMPORTANT: Remove blank lines between list items BEFORE converting to HTML
+  // This prevents blank lines from appearing in the rendered output
+  // For numbered lists: remove ALL blank lines between "1. item" lines (repeat until no more matches)
+  let prevText = '';
+  while (text !== prevText) {
+    prevText = text;
+    text = text.replace(/(^\d+\. .+)\s*\n\s*\n+\s*(^\d+\. .+)/gm, '$1\n$2');
+  }
+  // For bullet lists: remove ALL blank lines between "- item" lines (repeat until no more matches)
+  prevText = '';
+  while (text !== prevText) {
+    prevText = text;
+    text = text.replace(/(^[-•*] .+)\s*\n\s*\n+\s*(^[-•*] .+)/gm, '$1\n$2');
+  }
+  
+  // Handle numbered lists (1. item) - before bullet lists
+  text = text.replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>');
+  
+  // Handle bullet lists (-, *, •)
+  text = text.replace(/^[-•*] (.+)$/gm, function(match, content) {
+    if (match.includes('<li>')) return match;
+    return '<li>' + content + '</li>';
+  });
+  
+  // Wrap consecutive <li> items (separated by single newlines only)
+  // Process numbered lists (ol)
+  text = text.replace(/(<li>.*?<\/li>(?:\s*\n\s*<li>.*?<\/li>)+)/gs, function(match) {
+    if (match.includes('<ol>') || match.includes('<ul>')) return match;
+    // Remove ALL newlines and whitespace between list items
+    // This ensures no blank lines appear in the rendered output
+    let cleanMatch = match.replace(/<\/li>\s*\n+\s*<li>/g, '</li><li>');
+    // Remove any leading/trailing whitespace
+    cleanMatch = cleanMatch.trim();
+    return '<ul>' + cleanMatch + '</ul>';
+  });
+  
+  // Handle italic *text* - process line by line
+  text = text.split('\n').map(line => {
+    if (/^<|^#|\d+\.|^[-•*] /.test(line.trim())) return line;
+    return line.replace(/\*([^*\n<]+?)\*/g, '<em>$1</em>');
+  }).join('\n');
+  
+  // Split into paragraphs (double newlines), but don't split inside <ul> or <ol> tags
+  // First, temporarily mark list blocks
+  const listPlaceholders = [];
+  let listIndex = 0;
+  text = text.replace(/(<(ul|ol)>[\s\S]*?<\/\2>)/g, function(match) {
+    const placeholder = `__LIST_PLACEHOLDER_${listIndex}__`;
+    listPlaceholders[listIndex] = match;
+    listIndex++;
+    return placeholder;
+  });
+  
+  // Now split into paragraphs
+  let paragraphs = text.split(/\n\s*\n+/);
+  
+  // Restore list placeholders
+  paragraphs = paragraphs.map(para => {
+    listPlaceholders.forEach((list, index) => {
+      para = para.replace(`__LIST_PLACEHOLDER_${index}__`, list);
+    });
+    return para;
+  });
+  
+  // Process each paragraph
+  let result = paragraphs.map(para => {
+    para = para.trim();
+    if (!para) return '';
+    
+    // Skip if it's already a block element
+    if (/^<(h[1-6]|ul|ol|div)/.test(para)) {
+      if (para.includes('style="text-align:')) {
+        para = para.replace(/\n/g, '<br>');
+      }
+      return para;
+    }
+    
+    // Convert single newlines to <br> within paragraphs
+    para = para.replace(/\n/g, '<br>');
+    
+    // Wrap in <p> tag
+    return '<p style="text-align: left;">' + para + '</p>';
+  }).filter(p => p.length > 0).join('\n');
+  
+  return result;
+}
+
+// Get current language from localStorage or URL parameter
+function getCurrentLanguage() {
+  // Check URL parameter first
+  const urlParams = new URLSearchParams(window.location.search);
+  const langParam = urlParams.get('lang');
+  
+  if (langParam === 'ro' || langParam === 'en') {
+    return langParam;
+  }
+  
+  // Fall back to saved preference or default to English
+  return localStorage.getItem('preferredLanguage') || 'en';
+}
+
 // Initialize content loading
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Content loader initialized');
@@ -25,13 +148,31 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('FirebaseConfig projectId:', firebaseConfig.projectId);
   }
   
+  // Check if running locally (for development/demo mode)
+  function isLocalDevelopment() {
+    if (typeof window === 'undefined') return false;
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    return hostname === 'localhost' || 
+           hostname === '127.0.0.1' || 
+           hostname === '' || 
+           protocol === 'file:';
+  }
+  
+  const FORCE_DEMO_MODE = isLocalDevelopment();
+  
   // Wait a bit for Firebase to initialize
   setTimeout(() => {
     // Check if Firebase is properly configured
     let useDemoMode = false;
     
+    // Force demo mode for local development
+    if (FORCE_DEMO_MODE) {
+      console.log('🔧 LOCAL DEVELOPMENT: Using demo mode (localStorage)');
+      useDemoMode = true;
+    }
     // Check if db is null or undefined (means Firebase not initialized)
-    if (typeof db === 'undefined' || db === null) {
+    else if (typeof db === 'undefined' || db === null) {
       console.log('Firebase not configured (db is null/undefined) - using demo mode (localStorage)');
       useDemoMode = true;
     } else if (typeof firebaseConfig !== 'undefined') {
@@ -110,7 +251,10 @@ async function loadTrainings() {
     const defaultCards = container.querySelectorAll('.training-card');
     defaultCards.forEach(card => card.remove());
     
-    let query = db.collection(TRAININGS_COLLECTION_NAME).where('published', '==', true);
+    const currentLang = getCurrentLanguage();
+    let query = db.collection(TRAININGS_COLLECTION_NAME)
+      .where('published', '==', true)
+      .where('language', '==', currentLang);
     
     // Try to order by createdAt, but handle if index doesn't exist
     let snapshot;
@@ -120,7 +264,9 @@ async function loadTrainings() {
     } catch (orderByError) {
       console.warn('Could not order trainings by createdAt (index may be missing), trying without orderBy:', orderByError);
       // Fallback: query without orderBy
-      query = db.collection(TRAININGS_COLLECTION_NAME).where('published', '==', true);
+      query = db.collection(TRAININGS_COLLECTION_NAME)
+        .where('published', '==', true)
+        .where('language', '==', currentLang);
       snapshot = await query.get();
       // Sort manually by createdAt if available
       const docs = snapshot.docs.sort((a, b) => {
@@ -167,7 +313,7 @@ async function loadTrainings() {
       html += `
         <div class="training-card">
           <div class="training-image">
-            <img src="${item.image || 'images/training-placeholder.jpg'}" alt="${item.title || 'Training'}">
+            <img src="${item.image || 'images/training-placeholder.svg'}" alt="${item.title || 'Training'}">
           </div>
           <div class="training-content">
             <h2>${item.title || 'Training'}</h2>
@@ -209,7 +355,10 @@ async function loadSpeaking() {
     // Clear any default content
     container.innerHTML = '';
     
-    let query = db.collection(SPEAKING_COLLECTION_NAME).where('published', '==', true);
+    const currentLang = getCurrentLanguage();
+    let query = db.collection(SPEAKING_COLLECTION_NAME)
+      .where('published', '==', true)
+      .where('language', '==', currentLang);
     
     // Try to order by createdAt, but handle if index doesn't exist
     let snapshot;
@@ -219,7 +368,9 @@ async function loadSpeaking() {
     } catch (orderByError) {
       console.warn('Could not order speaking by createdAt (index may be missing), trying without orderBy:', orderByError);
       // Fallback: query without orderBy
-      query = db.collection(SPEAKING_COLLECTION_NAME).where('published', '==', true);
+      query = db.collection(SPEAKING_COLLECTION_NAME)
+        .where('published', '==', true)
+        .where('language', '==', currentLang);
       snapshot = await query.get();
       // Sort manually by createdAt if available
       const docs = snapshot.docs.sort((a, b) => {
@@ -254,7 +405,26 @@ async function loadSpeaking() {
       if (item.links && item.links.length > 0) {
         linksHTML = `<p class="speaking-links"><span data-i18n="speaking-more-info">${moreInfoLabel}</span><br>`;
         item.links.forEach((link, index) => {
-          linksHTML += `<a href="${link}" target="_blank" rel="noopener noreferrer">LinkedIn Link ${index + 1}</a><br>`;
+          // Handle both old format (string) and new format (object with text and url)
+          let linkUrl, linkText;
+          if (typeof link === 'string') {
+            linkUrl = link;
+            linkText = `Link ${index + 1}`;
+          } else if (link && typeof link === 'object') {
+            linkUrl = link.url || '';
+            linkText = link.text || linkUrl || `Link ${index + 1}`;
+          } else {
+            return; // Skip invalid links
+          }
+          
+          // Normalize URL - add https:// if missing
+          if (linkUrl && !linkUrl.match(/^https?:\/\//i)) {
+            linkUrl = 'https://' + linkUrl;
+          }
+          
+          if (linkUrl) {
+            linksHTML += `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer">${linkText}</a><br>`;
+          }
         });
         linksHTML += '</p>';
       }
@@ -262,13 +432,13 @@ async function loadSpeaking() {
       html += `
         <div class="speaking-item">
           <div class="speaking-image">
-            <img src="${item.image || 'images/speaking-placeholder.jpg'}" alt="${item.title || 'Speaking Event'}">
+            <img src="${item.image || 'images/speaking-placeholder.svg'}" alt="${item.title || 'Speaking Event'}">
           </div>
           <div class="speaking-details">
             <h2>${item.title || 'Event'}</h2>
             <p class="speaking-location">${item.location || ''}</p>
             <p class="speaking-date"><span data-i18n="speaking-date-label">${dateLabel}</span> ${item.date || ''}</p>
-            <p class="speaking-description">${item.description || ''}</p>
+            <div class="speaking-description">${formatMarkdownContent(item.description || '')}</div>
             ${linksHTML}
           </div>
         </div>
@@ -306,7 +476,10 @@ async function loadPublications() {
     const defaultCards = container.querySelectorAll('.publication-card');
     defaultCards.forEach(card => card.remove());
     
-    let query = db.collection(PUBLICATIONS_COLLECTION_NAME).where('published', '==', true);
+    const currentLang = getCurrentLanguage();
+    let query = db.collection(PUBLICATIONS_COLLECTION_NAME)
+      .where('published', '==', true)
+      .where('language', '==', currentLang);
     
     // Try to order by createdAt, but handle if index doesn't exist
     let snapshot;
@@ -316,7 +489,9 @@ async function loadPublications() {
     } catch (orderByError) {
       console.warn('Could not order publications by createdAt (index may be missing), trying without orderBy:', orderByError);
       // Fallback: query without orderBy
-      query = db.collection(PUBLICATIONS_COLLECTION_NAME).where('published', '==', true);
+      query = db.collection(PUBLICATIONS_COLLECTION_NAME)
+        .where('published', '==', true)
+        .where('language', '==', currentLang);
       snapshot = await query.get();
       // Sort manually by createdAt if available
       const docs = snapshot.docs.sort((a, b) => {
@@ -364,7 +539,7 @@ async function loadPublications() {
       html += `
         <article class="publication-card">
           <div class="publication-image">
-            <img src="${item.image || 'images/publication-placeholder.jpg'}" alt="${item.title || 'Publication'}">
+            <img src="${item.image || 'images/publication-placeholder.svg'}" alt="${item.title || 'Publication'}">
           </div>
           <div class="publication-content">
             <div class="publication-meta">
@@ -411,10 +586,12 @@ function loadTrainingsDemo() {
     console.log('Total items:', items.length);
     
     // Check published status - handle both boolean true and string "true"
+    const currentLang = getCurrentLanguage();
     const publishedItems = items.filter(item => {
       const isPublished = item.published === true || item.published === 'true';
-      console.log(`Item "${item.title}": published=${item.published} (type: ${typeof item.published}), isPublished=${isPublished}`);
-      return isPublished;
+      const matchesLanguage = (item.language || 'en') === currentLang;
+      console.log(`Item "${item.title}": published=${item.published} (type: ${typeof item.published}), isPublished=${isPublished}, language=${item.language || 'en'}, matchesLanguage=${matchesLanguage}`);
+      return isPublished && matchesLanguage;
     });
     console.log('Published items:', publishedItems);
     
@@ -454,7 +631,7 @@ function loadTrainingsDemo() {
       html += `
         <div class="training-card">
           <div class="training-image">
-            <img src="${item.image || 'images/training-placeholder.jpg'}" alt="${item.title || 'Training'}">
+            <img src="${item.image || 'images/training-placeholder.svg'}" alt="${item.title || 'Training'}">
           </div>
           <div class="training-content">
             <h2>${item.title || 'Training'}</h2>
@@ -496,10 +673,12 @@ function loadSpeakingDemo() {
     console.log('Total items:', items.length);
     
     // Check published status - handle both boolean true and string "true"
+    const currentLang = getCurrentLanguage();
     const publishedItems = items.filter(item => {
       const isPublished = item.published === true || item.published === 'true';
-      console.log(`Item "${item.title}": published=${item.published} (type: ${typeof item.published}), isPublished=${isPublished}`);
-      return isPublished;
+      const matchesLanguage = (item.language || 'en') === currentLang;
+      console.log(`Item "${item.title}": published=${item.published} (type: ${typeof item.published}), isPublished=${isPublished}, language=${item.language || 'en'}, matchesLanguage=${matchesLanguage}`);
+      return isPublished && matchesLanguage;
     });
     console.log('Published items:', publishedItems);
     
@@ -527,7 +706,26 @@ function loadSpeakingDemo() {
       if (item.links && item.links.length > 0) {
         linksHTML = `<p class="speaking-links"><span data-i18n="speaking-more-info">${moreInfoLabel}</span><br>`;
         item.links.forEach((link, index) => {
-          linksHTML += `<a href="${link}" target="_blank" rel="noopener noreferrer">LinkedIn Link ${index + 1}</a><br>`;
+          // Handle both old format (string) and new format (object with text and url)
+          let linkUrl, linkText;
+          if (typeof link === 'string') {
+            linkUrl = link;
+            linkText = `Link ${index + 1}`;
+          } else if (link && typeof link === 'object') {
+            linkUrl = link.url || '';
+            linkText = link.text || linkUrl || `Link ${index + 1}`;
+          } else {
+            return; // Skip invalid links
+          }
+          
+          // Normalize URL - add https:// if missing
+          if (linkUrl && !linkUrl.match(/^https?:\/\//i)) {
+            linkUrl = 'https://' + linkUrl;
+          }
+          
+          if (linkUrl) {
+            linksHTML += `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer">${linkText}</a><br>`;
+          }
         });
         linksHTML += '</p>';
       }
@@ -535,13 +733,13 @@ function loadSpeakingDemo() {
       html += `
         <div class="speaking-item">
           <div class="speaking-image">
-            <img src="${item.image || 'images/speaking-placeholder.jpg'}" alt="${item.title || 'Speaking Event'}">
+            <img src="${item.image || 'images/speaking-placeholder.svg'}" alt="${item.title || 'Speaking Event'}">
           </div>
           <div class="speaking-details">
             <h2>${item.title || 'Event'}</h2>
             <p class="speaking-location">${item.location || ''}</p>
             <p class="speaking-date"><span data-i18n="speaking-date-label">${dateLabel}</span> ${item.date || ''}</p>
-            <p class="speaking-description">${item.description || ''}</p>
+            <div class="speaking-description">${formatMarkdownContent(item.description || '')}</div>
             ${linksHTML}
           </div>
         </div>
@@ -579,10 +777,12 @@ function loadPublicationsDemo() {
     console.log('Total items:', items.length);
     
     // Check published status - handle both boolean true and string "true"
+    const currentLang = getCurrentLanguage();
     const publishedItems = items.filter(item => {
       const isPublished = item.published === true || item.published === 'true';
-      console.log(`Item "${item.title}": published=${item.published} (type: ${typeof item.published}), isPublished=${isPublished}`);
-      return isPublished;
+      const matchesLanguage = (item.language || 'en') === currentLang;
+      console.log(`Item "${item.title}": published=${item.published} (type: ${typeof item.published}), isPublished=${isPublished}, language=${item.language || 'en'}, matchesLanguage=${matchesLanguage}`);
+      return isPublished && matchesLanguage;
     });
     console.log('Published items:', publishedItems);
     
@@ -623,7 +823,7 @@ function loadPublicationsDemo() {
       html += `
         <article class="publication-card">
           <div class="publication-image">
-            <img src="${item.image || 'images/publication-placeholder.jpg'}" alt="${item.title || 'Publication'}">
+            <img src="${item.image || 'images/publication-placeholder.svg'}" alt="${item.title || 'Publication'}">
           </div>
           <div class="publication-content">
             <div class="publication-meta">

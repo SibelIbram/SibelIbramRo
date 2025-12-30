@@ -369,6 +369,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Translate the page
             translatePage(selectedLang);
+            
+            // Reload content for the new language
+            if (typeof reloadContent === 'function') {
+                reloadContent();
+            }
         });
     });
 

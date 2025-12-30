@@ -296,6 +296,85 @@
       border: 2px solid #0a0;
     }
 
+    .post-edit-form {
+      display: none;
+      margin-top: 1rem;
+      padding: 1.5rem;
+      background: #f8f9fa;
+      border: 2px solid #061572;
+      border-radius: 10px;
+    }
+
+    .post-edit-form.active {
+      display: block;
+    }
+
+    .post-edit-form .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .post-edit-form .form-group label {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .post-edit-form .form-group input,
+    .post-edit-form .form-group select,
+    .post-edit-form .form-group textarea {
+      font-size: 0.9rem;
+      padding: 0.6rem;
+      width: 100%;
+    }
+
+    .post-edit-form .form-group textarea {
+      min-height: 150px;
+    }
+
+    .post-edit-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .post-edit-actions button {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    .post-edit-actions button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .editor-toolbar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      background: #f8f9fa;
+      border-radius: 5px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .editor-btn {
+      padding: 0.5rem 0.8rem;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      font-weight: 600;
+    }
+
+    .editor-btn:hover {
+      background: #061572;
+      color: white;
+      border-color: #061572;
+    }
+
     .alert-info {
       background: #eef;
       color: #00a;
@@ -350,12 +429,13 @@
       display: inline-block;
       padding: 0.6rem 1.2rem;
       background: linear-gradient(135deg, #061572, #2c3e50);
-      color: white;
+      color: white !important;
       border-radius: 5px;
       cursor: pointer;
       font-weight: 600;
       transition: transform 0.3s;
       margin-bottom: 0.5rem;
+      text-decoration: none;
     }
 
     .file-upload-label:hover {
@@ -432,6 +512,13 @@
           <form id="trainingsForm">
             <input type="hidden" id="trainingId">
             <div class="form-group">
+              <label for="trainingLanguage">Language <span style="color: red;">*</span></label>
+              <select id="trainingLanguage" required>
+                <option value="en">English</option>
+                <option value="ro">Romanian</option>
+              </select>
+            </div>
+            <div class="form-group">
               <label for="trainingTitle">Title <span style="color: red;">*</span></label>
               <input type="text" id="trainingTitle" required placeholder="Training Title">
             </div>
@@ -445,6 +532,18 @@
                 <input type="file" id="trainingDocxUpload" accept=".docx" style="display: none;" onchange="handleDocxUpload(event, 'training')">
                 <label for="trainingDocxUpload" class="file-upload-label">📄 Upload .docx File</label>
                 <span id="trainingDocxStatus" style="margin-left: 1rem; color: #666; font-size: 0.9rem;"></span>
+              </div>
+              <div class="editor-toolbar">
+                <button type="button" class="editor-btn" onclick="formatTextInline('bold', 'trainingContent')" title="Bold"><strong>B</strong></button>
+                <button type="button" class="editor-btn" onclick="formatTextInline('italic', 'trainingContent')" title="Italic"><em>I</em></button>
+                <button type="button" class="editor-btn" onclick="formatTextInline('insertUnorderedList', 'trainingContent')" title="Bullet List">• List</button>
+                <button type="button" class="editor-btn" onclick="formatTextInline('insertOrderedList', 'trainingContent')" title="Numbered List">1. List</button>
+                <button type="button" class="editor-btn" onclick="insertLinkInline('trainingContent')" title="Insert Link">🔗 Link</button>
+                <div style="margin-left: 1rem; padding-left: 1rem; border-left: 2px solid #ddd; display: inline-flex; gap: 0.3rem;">
+                  <button type="button" class="editor-btn" onclick="setAlignmentInline('left', 'trainingContent')" title="Align Left" style="font-size: 1.1rem;">⬅</button>
+                  <button type="button" class="editor-btn" onclick="setAlignmentInline('center', 'trainingContent')" title="Align Center" style="font-size: 1.1rem;">↔</button>
+                  <button type="button" class="editor-btn" onclick="setAlignmentInline('right', 'trainingContent')" title="Align Right" style="font-size: 1.1rem;">➡</button>
+                </div>
               </div>
               <textarea id="trainingContent" placeholder="Full content (shown on detail page, or upload .docx file above)" style="min-height: 300px;"></textarea>
             </div>
@@ -497,6 +596,13 @@
           <form id="speakingForm">
             <input type="hidden" id="speakingId">
             <div class="form-group">
+              <label for="speakingLanguage">Language <span style="color: red;">*</span></label>
+              <select id="speakingLanguage" required>
+                <option value="en">English</option>
+                <option value="ro">Romanian</option>
+              </select>
+            </div>
+            <div class="form-group">
               <label for="speakingTitle">Title <span style="color: red;">*</span></label>
               <input type="text" id="speakingTitle" required placeholder="Event Title">
             </div>
@@ -510,6 +616,18 @@
             </div>
             <div class="form-group">
               <label for="speakingDescription">Description <span style="color: red;">*</span></label>
+              <div class="editor-toolbar">
+                <button type="button" class="editor-btn" onclick="formatTextInline('bold', 'speakingDescription')" title="Bold"><strong>B</strong></button>
+                <button type="button" class="editor-btn" onclick="formatTextInline('italic', 'speakingDescription')" title="Italic"><em>I</em></button>
+                <button type="button" class="editor-btn" onclick="formatTextInline('insertUnorderedList', 'speakingDescription')" title="Bullet List">• List</button>
+                <button type="button" class="editor-btn" onclick="formatTextInline('insertOrderedList', 'speakingDescription')" title="Numbered List">1. List</button>
+                <button type="button" class="editor-btn" onclick="insertLinkInline('speakingDescription')" title="Insert Link">🔗 Link</button>
+                <div style="margin-left: 1rem; padding-left: 1rem; border-left: 2px solid #ddd; display: inline-flex; gap: 0.3rem;">
+                  <button type="button" class="editor-btn" onclick="setAlignmentInline('left', 'speakingDescription')" title="Align Left" style="font-size: 1.1rem;">⬅</button>
+                  <button type="button" class="editor-btn" onclick="setAlignmentInline('center', 'speakingDescription')" title="Align Center" style="font-size: 1.1rem;">↔</button>
+                  <button type="button" class="editor-btn" onclick="setAlignmentInline('right', 'speakingDescription')" title="Align Right" style="font-size: 1.1rem;">➡</button>
+                </div>
+              </div>
               <textarea id="speakingDescription" required placeholder="Description of the speaking engagement"></textarea>
             </div>
             <div class="form-group">
@@ -526,7 +644,8 @@
               <label>Links (optional)</label>
               <div id="speakingLinksContainer">
                 <div class="link-input-group">
-                  <input type="url" class="speaking-link-input" placeholder="https://example.com/link">
+                  <input type="text" class="speaking-link-text" placeholder="Link text (e.g., View on LinkedIn)" style="flex: 1;">
+                  <input type="url" class="speaking-link-url" placeholder="https://example.com/link" style="flex: 1;">
                   <button type="button" onclick="removeLink(this)" class="btn-small btn-delete">Remove</button>
                 </div>
               </div>
@@ -567,6 +686,13 @@
           <form id="publicationsForm">
             <input type="hidden" id="publicationId">
             <div class="form-group">
+              <label for="publicationLanguage">Language <span style="color: red;">*</span></label>
+              <select id="publicationLanguage" required>
+                <option value="en">English</option>
+                <option value="ro">Romanian</option>
+              </select>
+            </div>
+            <div class="form-group">
               <label for="publicationTitle">Title <span style="color: red;">*</span></label>
               <input type="text" id="publicationTitle" required placeholder="Publication Title">
             </div>
@@ -588,6 +714,18 @@
                 <input type="file" id="publicationDocxUpload" accept=".docx" style="display: none;" onchange="handleDocxUpload(event, 'publication')">
                 <label for="publicationDocxUpload" class="file-upload-label">📄 Upload .docx File</label>
                 <span id="publicationDocxStatus" style="margin-left: 1rem; color: #666; font-size: 0.9rem;"></span>
+              </div>
+              <div class="editor-toolbar">
+                <button type="button" class="editor-btn" onclick="formatTextInline('bold', 'publicationContent')" title="Bold"><strong>B</strong></button>
+                <button type="button" class="editor-btn" onclick="formatTextInline('italic', 'publicationContent')" title="Italic"><em>I</em></button>
+                <button type="button" class="editor-btn" onclick="formatTextInline('insertUnorderedList', 'publicationContent')" title="Bullet List">• List</button>
+                <button type="button" class="editor-btn" onclick="formatTextInline('insertOrderedList', 'publicationContent')" title="Numbered List">1. List</button>
+                <button type="button" class="editor-btn" onclick="insertLinkInline('publicationContent')" title="Insert Link">🔗 Link</button>
+                <div style="margin-left: 1rem; padding-left: 1rem; border-left: 2px solid #ddd; display: inline-flex; gap: 0.3rem;">
+                  <button type="button" class="editor-btn" onclick="setAlignmentInline('left', 'publicationContent')" title="Align Left" style="font-size: 1.1rem;">⬅</button>
+                  <button type="button" class="editor-btn" onclick="setAlignmentInline('center', 'publicationContent')" title="Align Center" style="font-size: 1.1rem;">↔</button>
+                  <button type="button" class="editor-btn" onclick="setAlignmentInline('right', 'publicationContent')" title="Align Right" style="font-size: 1.1rem;">➡</button>
+                </div>
               </div>
               <textarea id="publicationContent" placeholder="Full content (or upload .docx file above)" style="min-height: 300px;"></textarea>
             </div>

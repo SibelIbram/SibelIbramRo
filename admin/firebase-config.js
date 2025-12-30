@@ -2,6 +2,29 @@
 // TODO: Replace with your Firebase project credentials
 // Get these from: https://console.firebase.google.com/
 
+// Check if running locally (for development/demo mode)
+function isLocalDevelopment() {
+  if (typeof window === 'undefined') return false;
+  
+  const hostname = window.location.hostname;
+  const protocol = window.location.protocol;
+  
+  // Check for localhost, 127.0.0.1, or file:// protocol
+  return hostname === 'localhost' || 
+         hostname === '127.0.0.1' || 
+         hostname === '' || 
+         protocol === 'file:';
+}
+
+// Force demo mode for local development
+const FORCE_DEMO_MODE = isLocalDevelopment();
+
+if (FORCE_DEMO_MODE) {
+  console.log('🔧 LOCAL DEVELOPMENT MODE DETECTED');
+  console.log('   Running in demo mode (localStorage) for local testing');
+  console.log('   Production will use Firebase normally');
+}
+
 const firebaseConfig = {
   apiKey: "AIzaSyBmKyW035l88FTu1H9BorQ3ftrhlGFWu9w",
   authDomain: "sibram.firebaseapp.com",
@@ -18,8 +41,16 @@ let db = null;
 let storage = null;
 
 try {
+  // Force demo mode for local development
+  if (FORCE_DEMO_MODE) {
+    console.log("Local development: Forcing demo mode (localStorage)");
+    firebaseInitialized = false;
+    db = null;
+    auth = null;
+    storage = null;
+  }
   // Check if config has placeholder values
-  if (firebaseConfig.apiKey === 'YOUR_API_KEY' || firebaseConfig.projectId === 'YOUR_PROJECT_ID') {
+  else if (firebaseConfig.apiKey === 'YOUR_API_KEY' || firebaseConfig.projectId === 'YOUR_PROJECT_ID') {
     console.log("Firebase config has placeholder values. Using demo mode (localStorage).");
     console.log("To use Firebase, update admin/firebase-config.js with your credentials from: https://console.firebase.google.com/");
     firebaseInitialized = false;

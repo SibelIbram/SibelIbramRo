@@ -1,0 +1,44 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="publicationGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f0f4f8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="600" fill="url(#publicationGradient)"/>
+  
+  <!-- Document/Article Icon -->
+  <g transform="translate(300, 120)">
+    <!-- Document -->
+    <rect x="0" y="0" width="200" height="260" fill="#ffffff" rx="4" opacity="0.95"/>
+    <rect x="0" y="0" width="200" height="260" fill="none" stroke="#cbd5e0" stroke-width="2" rx="4"/>
+    
+    <!-- Folded corner -->
+    <path d="M 160 0 L 200 0 L 200 40 L 160 0 Z" fill="#e2e8f0" opacity="0.8"/>
+    <path d="M 160 0 L 200 0 L 200 40 L 160 0 Z" fill="none" stroke="#cbd5e0" stroke-width="1.5"/>
+    
+    <!-- Text lines -->
+    <rect x="25" y="35" width="130" height="8" fill="#cbd5e0" rx="2"/>
+    <rect x="25" y="55" width="150" height="6" fill="#e2e8f0" rx="2"/>
+    <rect x="25" y="70" width="140" height="6" fill="#e2e8f0" rx="2"/>
+    
+    <rect x="25" y="100" width="130" height="6" fill="#e2e8f0" rx="2"/>
+    <rect x="25" y="115" width="150" height="6" fill="#e2e8f0" rx="2"/>
+    <rect x="25" y="130" width="120" height="6" fill="#e2e8f0" rx="2"/>
+    
+    <rect x="25" y="160" width="130" height="6" fill="#e2e8f0" rx="2"/>
+    <rect x="25" y="175" width="150" height="6" fill="#e2e8f0" rx="2"/>
+    <rect x="25" y="190" width="110" height="6" fill="#e2e8f0" rx="2"/>
+    
+    <!-- Paragraph marker -->
+    <circle cx="30" cy="105" r="3" fill="#94a3b8"/>
+    <circle cx="30" cy="165" r="3" fill="#94a3b8"/>
+  </g>
+  
+  <!-- Decorative elements -->
+  <circle cx="150" cy="500" r="30" fill="#e2e8f0" opacity="0.5"/>
+  <circle cx="650" cy="100" r="35" fill="#cbd5e0" opacity="0.3"/>
+</svg>
+

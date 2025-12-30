@@ -119,35 +119,41 @@ service firebase.storage {
 
 ## Step 3: Create Firestore Indexes (Required for Queries)
 
-Your queries filter by `published == true` and order by `createdAt`. Create indexes:
+Your queries filter by `published == true`, `language == 'en'/'ro'`, and order by `createdAt`. Create composite indexes:
 
-### 3.1 Trainings Index
+### 3.1 Trainings Index (with Language)
 1. Go to **Firestore Database** → **Indexes**
 2. Click **Create Index**
 3. Collection ID: `trainings`
 4. Fields to index:
    - `published` (Ascending)
+   - `language` (Ascending)
    - `createdAt` (Descending)
 5. Query scope: **Collection**
 6. Click **Create**
 
-### 3.2 Speaking Index
+### 3.2 Speaking Index (with Language)
 1. Click **Create Index**
 2. Collection ID: `speaking`
 3. Fields:
    - `published` (Ascending)
+   - `language` (Ascending)
    - `createdAt` (Descending)
 4. Click **Create**
 
-### 3.3 Publications Index
+### 3.3 Publications Index (with Language)
 1. Click **Create Index**
 2. Collection ID: `publications`
 3. Fields:
    - `published` (Ascending)
+   - `language` (Ascending)
    - `createdAt` (Descending)
 4. Click **Create**
 
-**Note:** Index creation can take a few minutes. You'll see a notification when ready.
+**Note:** 
+- Index creation can take a few minutes. You'll see a notification when ready.
+- The code will work without these indexes (it falls back to client-side sorting), but creating them improves performance significantly.
+- If you see an error link in the console when testing, Firebase will provide a direct link to create the required index.
 
 ---
 

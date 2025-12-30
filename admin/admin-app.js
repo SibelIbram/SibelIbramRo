@@ -284,6 +284,7 @@ function getFormData(category) {
       data.content = document.getElementById('trainingContent').value.trim();
       data.image = document.getElementById('trainingImage').value.trim();
       data.date = document.getElementById('trainingDate').value.trim();
+      data.language = document.getElementById('trainingLanguage').value || 'en';
       break;
       
     case 'speaking':
@@ -301,11 +302,28 @@ function getFormData(category) {
       data.description = speakingDesc;
       data.image = document.getElementById('speakingImage').value.trim();
       
-      // Get links
-      const linkInputs = document.querySelectorAll('.speaking-link-input');
-      data.links = Array.from(linkInputs)
-        .map(input => input.value.trim())
-        .filter(link => link.length > 0);
+      // Get links - collect both text and URL
+      const linkGroups = document.querySelectorAll('#speakingLinksContainer .link-input-group');
+      data.links = [];
+      linkGroups.forEach(group => {
+        const textInput = group.querySelector('.speaking-link-text');
+        const urlInput = group.querySelector('.speaking-link-url');
+        if (textInput && urlInput) {
+          const text = textInput.value.trim();
+          let url = urlInput.value.trim();
+          if (url) {
+            // Normalize URL - add https:// if missing
+            if (!url.match(/^https?:\/\//i)) {
+              url = 'https://' + url;
+            }
+            data.links.push({
+              text: text || url, // Use URL as text if no text provided
+              url: url
+            });
+          }
+        }
+      });
+      data.language = document.getElementById('speakingLanguage').value || 'en';
       break;
       
     case 'publications':
@@ -323,6 +341,7 @@ function getFormData(category) {
       data.content = document.getElementById('publicationContent').value.trim();
       data.image = document.getElementById('publicationImage').value.trim();
       data.readMore = document.getElementById('publicationReadMore').value.trim();
+      data.language = document.getElementById('publicationLanguage').value || 'en';
       break;
   }
   
@@ -472,22 +491,26 @@ async function loadItems(category) {
         } catch (e) {}
       }
       
+      const language = item.language || 'en';
+      const langLabel = language === 'ro' ? '<span style="background: #3498db; color: white; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.8rem; margin-left: 0.5rem;">RO</span>' : '<span style="background: #2ecc71; color: white; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.8rem; margin-left: 0.5rem;">EN</span>';
+      
       itemsHTML += `
         <div class="post-item" id="item-${item.id}">
           <div class="post-item-header">
             <div class="post-info">
-              <h3>${status} ${item.title || 'Untitled'}</h3>
+              <h3>${status} ${item.title || 'Untitled'}${langLabel}</h3>
               <div class="post-meta">
                 <span>📅 ${date}</span>
                 ${item.published ? '<span style="color: #27ae60;">Published</span>' : '<span style="color: #f39c12;">Draft</span>'}
               </div>
             </div>
             <div class="post-actions">
-              <button class="btn-small btn-edit" onclick="editItem('${category}', '${item.id}')">Edit</button>
+              <button class="btn-small btn-edit" onclick="toggleEditItem('${category}', '${item.id}')">Edit</button>
               <button class="btn-small btn-delete" onclick="deleteItem('${category}', '${item.id}', '${escapedTitle}')">Delete</button>
               ${!item.published ? `<button class="btn-small btn-publish" onclick="publishItem('${category}', '${item.id}')">Publish</button>` : `<button class="btn-small" style="background: #f39c12; color: white;" onclick="unpublishItem('${category}', '${item.id}')">Unpublish</button>`}
             </div>
           </div>
+          ${generateInlineEditForm(category, item.id, item)}
         </div>
       `;
     });
@@ -499,11 +522,225 @@ async function loadItems(category) {
   }
 }
 
-// Edit item
-window.editItem = async function(category, itemId) {
-  editingItemId = itemId;
-  currentCategory = category;
+// Generate inline edit form HTML
+function generateInlineEditForm(category, itemId, item) {
+  const escapedItemId = itemId.replace(/'/g, "\\'").replace(/"/g, '&quot;');
   
+  if (category === 'trainings') {
+    return `
+      <div class="post-edit-form" id="edit-form-${escapedItemId}">
+        <h4 style="margin-top: 0; color: #2c3e50; margin-bottom: 1rem;">Edit Training</h4>
+        <div class="form-group">
+          <label>Language <span style="color: red;">*</span></label>
+          <select id="edit-language-${escapedItemId}" class="edit-field">
+            <option value="en" ${(item.language || 'en') === 'en' ? 'selected' : ''}>English</option>
+            <option value="ro" ${(item.language || 'en') === 'ro' ? 'selected' : ''}>Romanian</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Title <span style="color: red;">*</span></label>
+          <input type="text" id="edit-title-${escapedItemId}" class="edit-field" placeholder="Training title" value="${(item.title || '').replace(/"/g, '&quot;')}">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="edit-description-${escapedItemId}" class="edit-field" placeholder="Short description">${(item.description || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Content</label>
+          <div class="editor-toolbar">
+            <button type="button" class="editor-btn" onclick="formatTextInline('bold', 'edit-content-${escapedItemId}')" title="Bold"><strong>B</strong></button>
+            <button type="button" class="editor-btn" onclick="formatTextInline('italic', 'edit-content-${escapedItemId}')" title="Italic"><em>I</em></button>
+            <button type="button" class="editor-btn" onclick="formatTextInline('insertUnorderedList', 'edit-content-${escapedItemId}')" title="Bullet List">• List</button>
+            <button type="button" class="editor-btn" onclick="formatTextInline('insertOrderedList', 'edit-content-${escapedItemId}')" title="Numbered List">1. List</button>
+            <button type="button" class="editor-btn" onclick="insertLinkInline('edit-content-${escapedItemId}')" title="Insert Link">🔗 Link</button>
+            <div style="margin-left: 1rem; padding-left: 1rem; border-left: 2px solid #ddd; display: inline-flex; gap: 0.3rem;">
+              <button type="button" class="editor-btn" onclick="setAlignmentInline('left', 'edit-content-${escapedItemId}')" title="Align Left" style="font-size: 1.1rem;">⬅</button>
+              <button type="button" class="editor-btn" onclick="setAlignmentInline('center', 'edit-content-${escapedItemId}')" title="Align Center" style="font-size: 1.1rem;">↔</button>
+              <button type="button" class="editor-btn" onclick="setAlignmentInline('right', 'edit-content-${escapedItemId}')" title="Align Right" style="font-size: 1.1rem;">➡</button>
+            </div>
+          </div>
+          <textarea id="edit-content-${escapedItemId}" class="edit-field" placeholder="Full content" style="min-height: 200px;">${(item.content || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Image URL</label>
+          <input type="url" id="edit-image-${escapedItemId}" class="edit-field" placeholder="https://example.com/image.jpg" value="${(item.image || '').replace(/"/g, '&quot;')}">
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="edit-date-${escapedItemId}" class="edit-field" value="${item.date || ''}">
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="edit-published-${escapedItemId}" class="edit-field" ${item.published ? 'checked' : ''}>
+            Publish immediately
+          </label>
+        </div>
+        <div class="post-edit-actions">
+          <button class="btn-small btn-edit" onclick="saveInlineEdit('${category}', '${escapedItemId}')">Save Changes</button>
+          <button class="btn-small btn-delete" onclick="toggleEditItem('${category}', '${escapedItemId}')">Cancel</button>
+        </div>
+      </div>
+    `;
+  } else if (category === 'speaking') {
+    let linksHTML = '';
+    if (item.links && item.links.length > 0) {
+      linksHTML = item.links.map((link, idx) => 
+        `<div class="link-input-group"><input type="text" id="edit-link-text-${escapedItemId}-${idx}" class="edit-field" placeholder="Link text" value="${(link.text || '').replace(/"/g, '&quot;')}"><input type="url" id="edit-link-url-${escapedItemId}-${idx}" class="edit-field" placeholder="URL" value="${(link.url || '').replace(/"/g, '&quot;')}"><button type="button" class="btn-small btn-delete" onclick="removeInlineLink('${escapedItemId}', ${idx})">Remove</button></div>`
+      ).join('');
+    } else {
+      linksHTML = `<div class="link-input-group"><input type="text" id="edit-link-text-${escapedItemId}-0" class="edit-field" placeholder="Link text"><input type="url" id="edit-link-url-${escapedItemId}-0" class="edit-field" placeholder="URL"></div>`;
+    }
+    
+    return `
+      <div class="post-edit-form" id="edit-form-${escapedItemId}">
+        <h4 style="margin-top: 0; color: #2c3e50; margin-bottom: 1rem;">Edit Speaking Event</h4>
+        <div class="form-group">
+          <label>Language <span style="color: red;">*</span></label>
+          <select id="edit-language-${escapedItemId}" class="edit-field">
+            <option value="en" ${(item.language || 'en') === 'en' ? 'selected' : ''}>English</option>
+            <option value="ro" ${(item.language || 'en') === 'ro' ? 'selected' : ''}>Romanian</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Title <span style="color: red;">*</span></label>
+          <input type="text" id="edit-title-${escapedItemId}" class="edit-field" placeholder="Event title" value="${(item.title || '').replace(/"/g, '&quot;')}">
+        </div>
+        <div class="form-group">
+          <label>Location</label>
+          <input type="text" id="edit-location-${escapedItemId}" class="edit-field" placeholder="Location" value="${(item.location || '').replace(/"/g, '&quot;')}">
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="text" id="edit-date-${escapedItemId}" class="edit-field" placeholder="Date" value="${(item.date || '').replace(/"/g, '&quot;')}">
+        </div>
+        <div class="form-group">
+          <label>Description <span style="color: red;">*</span></label>
+          <div class="editor-toolbar">
+            <button type="button" class="editor-btn" onclick="formatTextInline('bold', 'edit-description-${escapedItemId}')" title="Bold"><strong>B</strong></button>
+            <button type="button" class="editor-btn" onclick="formatTextInline('italic', 'edit-description-${escapedItemId}')" title="Italic"><em>I</em></button>
+            <button type="button" class="editor-btn" onclick="formatTextInline('insertUnorderedList', 'edit-description-${escapedItemId}')" title="Bullet List">• List</button>
+            <button type="button" class="editor-btn" onclick="formatTextInline('insertOrderedList', 'edit-description-${escapedItemId}')" title="Numbered List">1. List</button>
+            <button type="button" class="editor-btn" onclick="insertLinkInline('edit-description-${escapedItemId}')" title="Insert Link">🔗 Link</button>
+            <div style="margin-left: 1rem; padding-left: 1rem; border-left: 2px solid #ddd; display: inline-flex; gap: 0.3rem;">
+              <button type="button" class="editor-btn" onclick="setAlignmentInline('left', 'edit-description-${escapedItemId}')" title="Align Left" style="font-size: 1.1rem;">⬅</button>
+              <button type="button" class="editor-btn" onclick="setAlignmentInline('center', 'edit-description-${escapedItemId}')" title="Align Center" style="font-size: 1.1rem;">↔</button>
+              <button type="button" class="editor-btn" onclick="setAlignmentInline('right', 'edit-description-${escapedItemId}')" title="Align Right" style="font-size: 1.1rem;">➡</button>
+            </div>
+          </div>
+          <textarea id="edit-description-${escapedItemId}" class="edit-field" placeholder="Description" style="min-height: 150px;">${(item.description || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Links</label>
+          <div id="edit-links-container-${escapedItemId}">${linksHTML}</div>
+          <button type="button" class="btn-small" onclick="addInlineLink('${escapedItemId}')" style="margin-top: 0.5rem;">+ Add Link</button>
+        </div>
+        <div class="form-group">
+          <label>Image URL</label>
+          <input type="url" id="edit-image-${escapedItemId}" class="edit-field" placeholder="https://example.com/image.jpg" value="${(item.image || '').replace(/"/g, '&quot;')}">
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="edit-published-${escapedItemId}" class="edit-field" ${item.published ? 'checked' : ''}>
+            Publish immediately
+          </label>
+        </div>
+        <div class="post-edit-actions">
+          <button class="btn-small btn-edit" onclick="saveInlineEdit('${category}', '${escapedItemId}')">Save Changes</button>
+          <button class="btn-small btn-delete" onclick="toggleEditItem('${category}', '${escapedItemId}')">Cancel</button>
+        </div>
+      </div>
+    `;
+  } else if (category === 'publications') {
+    return `
+      <div class="post-edit-form" id="edit-form-${escapedItemId}">
+        <h4 style="margin-top: 0; color: #2c3e50; margin-bottom: 1rem;">Edit Publication</h4>
+        <div class="form-group">
+          <label>Language <span style="color: red;">*</span></label>
+          <select id="edit-language-${escapedItemId}" class="edit-field">
+            <option value="en" ${(item.language || 'en') === 'en' ? 'selected' : ''}>English</option>
+            <option value="ro" ${(item.language || 'en') === 'ro' ? 'selected' : ''}>Romanian</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Title <span style="color: red;">*</span></label>
+          <input type="text" id="edit-title-${escapedItemId}" class="edit-field" placeholder="Publication title" value="${(item.title || '').replace(/"/g, '&quot;')}">
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="text" id="edit-date-${escapedItemId}" class="edit-field" placeholder="Date" value="${(item.date || '').replace(/"/g, '&quot;')}">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="edit-category-${escapedItemId}" class="edit-field">
+            <option value="article" ${item.category === 'article' ? 'selected' : ''}>Article</option>
+            <option value="book" ${item.category === 'book' ? 'selected' : ''}>Book</option>
+            <option value="paper" ${item.category === 'paper' ? 'selected' : ''}>Paper</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Excerpt</label>
+          <textarea id="edit-excerpt-${escapedItemId}" class="edit-field" placeholder="Short excerpt">${(item.excerpt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Content</label>
+          <div class="editor-toolbar">
+            <button type="button" class="editor-btn" onclick="formatTextInline('bold', 'edit-content-${escapedItemId}')" title="Bold"><strong>B</strong></button>
+            <button type="button" class="editor-btn" onclick="formatTextInline('italic', 'edit-content-${escapedItemId}')" title="Italic"><em>I</em></button>
+            <button type="button" class="editor-btn" onclick="formatTextInline('insertUnorderedList', 'edit-content-${escapedItemId}')" title="Bullet List">• List</button>
+            <button type="button" class="editor-btn" onclick="formatTextInline('insertOrderedList', 'edit-content-${escapedItemId}')" title="Numbered List">1. List</button>
+            <button type="button" class="editor-btn" onclick="insertLinkInline('edit-content-${escapedItemId}')" title="Insert Link">🔗 Link</button>
+            <div style="margin-left: 1rem; padding-left: 1rem; border-left: 2px solid #ddd; display: inline-flex; gap: 0.3rem;">
+              <button type="button" class="editor-btn" onclick="setAlignmentInline('left', 'edit-content-${escapedItemId}')" title="Align Left" style="font-size: 1.1rem;">⬅</button>
+              <button type="button" class="editor-btn" onclick="setAlignmentInline('center', 'edit-content-${escapedItemId}')" title="Align Center" style="font-size: 1.1rem;">↔</button>
+              <button type="button" class="editor-btn" onclick="setAlignmentInline('right', 'edit-content-${escapedItemId}')" title="Align Right" style="font-size: 1.1rem;">➡</button>
+            </div>
+          </div>
+          <textarea id="edit-content-${escapedItemId}" class="edit-field" placeholder="Full content" style="min-height: 200px;">${(item.content || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Image URL</label>
+          <input type="url" id="edit-image-${escapedItemId}" class="edit-field" placeholder="https://example.com/image.jpg" value="${(item.image || '').replace(/"/g, '&quot;')}">
+        </div>
+        <div class="form-group">
+          <label>Read More URL</label>
+          <input type="url" id="edit-readmore-${escapedItemId}" class="edit-field" placeholder="https://example.com" value="${(item.readMore || '').replace(/"/g, '&quot;')}">
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="edit-published-${escapedItemId}" class="edit-field" ${item.published ? 'checked' : ''}>
+            Publish immediately
+          </label>
+        </div>
+        <div class="post-edit-actions">
+          <button class="btn-small btn-edit" onclick="saveInlineEdit('${category}', '${escapedItemId}')">Save Changes</button>
+          <button class="btn-small btn-delete" onclick="toggleEditItem('${category}', '${escapedItemId}')">Cancel</button>
+        </div>
+      </div>
+    `;
+  }
+  return '';
+}
+
+// Toggle inline edit form
+window.toggleEditItem = async function(category, itemId) {
+  const editForm = document.getElementById(`edit-form-${itemId}`);
+  if (!editForm) {
+    showAlert(category + 'Alert', 'Edit form not found!', 'error');
+    return;
+  }
+  
+  // If form is already visible, hide it
+  if (editForm.classList.contains('active')) {
+    editForm.classList.remove('active');
+    return;
+  }
+  
+  // Hide all other edit forms
+  document.querySelectorAll('.post-edit-form').forEach(form => {
+    form.classList.remove('active');
+  });
+  
+  // Load item data and fill form
   try {
     let item;
     
@@ -524,12 +761,178 @@ window.editItem = async function(category, itemId) {
       return;
     }
     
-    // Fill form
-    fillForm(category, item);
-    switchTab(category, 'new');
+    // Fill inline edit form fields
+    fillInlineEditForm(category, itemId, item);
+    
+    // Show the form
+    editForm.classList.add('active');
+    
+    // Scroll to the form
+    editForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (error) {
     console.error('Edit error:', error);
     showAlert(category + 'Alert', getErrorMessage(error), 'error');
+  }
+};
+
+// Fill inline edit form with item data
+function fillInlineEditForm(category, itemId, item) {
+  document.getElementById(`edit-title-${itemId}`).value = item.title || '';
+  document.getElementById(`edit-published-${itemId}`).checked = item.published || false;
+  
+  if (category === 'trainings') {
+    document.getElementById(`edit-description-${itemId}`).value = item.description || '';
+    document.getElementById(`edit-content-${itemId}`).value = item.content || '';
+    document.getElementById(`edit-image-${itemId}`).value = item.image || '';
+    document.getElementById(`edit-date-${itemId}`).value = item.date || '';
+    const langSelect = document.getElementById(`edit-language-${itemId}`);
+    if (langSelect) langSelect.value = item.language || 'en';
+  } else if (category === 'speaking') {
+    document.getElementById(`edit-location-${itemId}`).value = item.location || '';
+    document.getElementById(`edit-date-${itemId}`).value = item.date || '';
+    document.getElementById(`edit-description-${itemId}`).value = item.description || '';
+    document.getElementById(`edit-image-${itemId}`).value = item.image || '';
+    const langSelect = document.getElementById(`edit-language-${itemId}`);
+    if (langSelect) langSelect.value = item.language || 'en';
+    // Handle links
+    const linksContainer = document.getElementById(`edit-links-container-${itemId}`);
+    linksContainer.innerHTML = '';
+    if (item.links && item.links.length > 0) {
+      item.links.forEach((link, idx) => {
+        addInlineLinkInput(itemId, idx, link);
+      });
+    } else {
+      addInlineLinkInput(itemId, 0);
+    }
+  } else if (category === 'publications') {
+    document.getElementById(`edit-date-${itemId}`).value = item.date || '';
+    document.getElementById(`edit-category-${itemId}`).value = item.category || '';
+    document.getElementById(`edit-excerpt-${itemId}`).value = item.excerpt || '';
+    document.getElementById(`edit-content-${itemId}`).value = item.content || '';
+    document.getElementById(`edit-image-${itemId}`).value = item.image || '';
+    document.getElementById(`edit-readmore-${itemId}`).value = item.readMore || '';
+    const langSelect = document.getElementById(`edit-language-${itemId}`);
+    if (langSelect) langSelect.value = item.language || 'en';
+  }
+}
+
+// Save inline edit
+window.saveInlineEdit = async function(category, itemId) {
+  try {
+    let itemData = {};
+    
+    if (category === 'trainings') {
+      itemData = {
+        title: document.getElementById(`edit-title-${itemId}`).value.trim(),
+        description: document.getElementById(`edit-description-${itemId}`).value.trim(),
+        content: document.getElementById(`edit-content-${itemId}`).value.trim(),
+        image: document.getElementById(`edit-image-${itemId}`).value.trim(),
+        date: document.getElementById(`edit-date-${itemId}`).value.trim(),
+        language: document.getElementById(`edit-language-${itemId}`).value || 'en',
+        published: document.getElementById(`edit-published-${itemId}`).checked
+      };
+    } else if (category === 'speaking') {
+      const links = [];
+      const linksContainer = document.getElementById(`edit-links-container-${itemId}`);
+      const linkGroups = linksContainer.querySelectorAll('.link-input-group');
+      linkGroups.forEach(group => {
+        const textInput = group.querySelector('input[type="text"]');
+        const urlInput = group.querySelector('input[type="url"]');
+        if (textInput && urlInput) {
+          const text = textInput.value.trim();
+          let url = urlInput.value.trim();
+          if (url) {
+            // Normalize URL - add https:// if missing
+            if (!url.match(/^https?:\/\//i)) {
+              url = 'https://' + url;
+            }
+            links.push({ 
+              text: text || url, // Use URL as text if no text provided
+              url: url 
+            });
+          }
+        }
+      });
+      
+      itemData = {
+        title: document.getElementById(`edit-title-${itemId}`).value.trim(),
+        location: document.getElementById(`edit-location-${itemId}`).value.trim(),
+        date: document.getElementById(`edit-date-${itemId}`).value.trim(),
+        description: document.getElementById(`edit-description-${itemId}`).value.trim(),
+        image: document.getElementById(`edit-image-${itemId}`).value.trim(),
+        links: links,
+        language: document.getElementById(`edit-language-${itemId}`).value || 'en',
+        published: document.getElementById(`edit-published-${itemId}`).checked
+      };
+    } else if (category === 'publications') {
+      itemData = {
+        title: document.getElementById(`edit-title-${itemId}`).value.trim(),
+        date: document.getElementById(`edit-date-${itemId}`).value.trim(),
+        category: document.getElementById(`edit-category-${itemId}`).value,
+        excerpt: document.getElementById(`edit-excerpt-${itemId}`).value.trim(),
+        content: document.getElementById(`edit-content-${itemId}`).value.trim(),
+        image: document.getElementById(`edit-image-${itemId}`).value.trim(),
+        readMore: document.getElementById(`edit-readmore-${itemId}`).value.trim(),
+        language: document.getElementById(`edit-language-${itemId}`).value || 'en',
+        published: document.getElementById(`edit-published-${itemId}`).checked
+      };
+    }
+    
+    // Validate required fields
+    if (!itemData.title || itemData.title.length < 3) {
+      showAlert(category + 'Alert', 'Title must be at least 3 characters!', 'error');
+      return;
+    }
+    
+    // Save to Firebase or localStorage
+    if (demoMode) {
+      const storageKey = `demo${category.charAt(0).toUpperCase() + category.slice(1)}`;
+      const items = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      const itemIndex = items.findIndex(i => i.id === itemId);
+      if (itemIndex !== -1) {
+        items[itemIndex] = { ...items[itemIndex], ...itemData };
+        localStorage.setItem(storageKey, JSON.stringify(items));
+      }
+    } else {
+      const collection = getCollectionName(category);
+      await db.collection(collection).doc(itemId).update(itemData);
+    }
+    
+    // Hide edit form and reload
+    document.getElementById(`edit-form-${itemId}`).classList.remove('active');
+    showAlert(category + 'Alert', 'Item updated successfully!', 'success');
+    loadItems(category);
+  } catch (error) {
+    console.error('Save error:', error);
+    showAlert(category + 'Alert', 'Error saving: ' + getErrorMessage(error), 'error');
+  }
+};
+
+// Helper functions for inline links
+window.addInlineLink = function(itemId) {
+  const container = document.getElementById(`edit-links-container-${itemId}`);
+  const linkGroups = container.querySelectorAll('.link-input-group');
+  const nextIndex = linkGroups.length;
+  addInlineLinkInput(itemId, nextIndex);
+};
+
+function addInlineLinkInput(itemId, index, link = null) {
+  const container = document.getElementById(`edit-links-container-${itemId}`);
+  const div = document.createElement('div');
+  div.className = 'link-input-group';
+  div.innerHTML = `
+    <input type="text" id="edit-link-text-${itemId}-${index}" class="edit-field" placeholder="Link text" value="${link ? (link.text || '').replace(/"/g, '&quot;') : ''}">
+    <input type="url" id="edit-link-url-${itemId}-${index}" class="edit-field" placeholder="URL" value="${link ? (link.url || '').replace(/"/g, '&quot;') : ''}">
+    <button type="button" class="btn-small btn-delete" onclick="removeInlineLink('${itemId}', ${index})">Remove</button>
+  `;
+  container.appendChild(div);
+}
+
+window.removeInlineLink = function(itemId, index) {
+  const container = document.getElementById(`edit-links-container-${itemId}`);
+  const linkGroups = container.querySelectorAll('.link-input-group');
+  if (linkGroups[index]) {
+    linkGroups[index].remove();
   }
 };
 
@@ -545,6 +948,7 @@ function fillForm(category, item) {
       document.getElementById('trainingContent').value = item.content || '';
       document.getElementById('trainingImage').value = item.image || '';
       document.getElementById('trainingDate').value = item.date || '';
+      document.getElementById('trainingLanguage').value = item.language || 'en';
       document.getElementById('trainingPublished').checked = item.published || false;
       break;
       
@@ -554,6 +958,7 @@ function fillForm(category, item) {
       document.getElementById('speakingDate').value = item.date || '';
       document.getElementById('speakingDescription').value = item.description || '';
       document.getElementById('speakingImage').value = item.image || '';
+      document.getElementById('speakingLanguage').value = item.language || 'en';
       document.getElementById('speakingPublished').checked = item.published || false;
       
       // Clear and populate links
@@ -576,6 +981,7 @@ function fillForm(category, item) {
       document.getElementById('publicationContent').value = item.content || '';
       document.getElementById('publicationImage').value = item.image || '';
       document.getElementById('publicationReadMore').value = item.readMore || '';
+      document.getElementById('publicationLanguage').value = item.language || 'en';
       document.getElementById('publicationPublished').checked = item.published || false;
       break;
   }
@@ -726,12 +1132,15 @@ window.cancelEdit = function(category) {
 }
 
 // Speaking links management
-window.addLink = function(value = '') {
+window.addLink = function(link = null) {
   const container = document.getElementById('speakingLinksContainer');
   const linkGroup = document.createElement('div');
   linkGroup.className = 'link-input-group';
+  const textValue = link && typeof link === 'object' ? (link.text || '') : '';
+  const urlValue = link && typeof link === 'object' ? (link.url || '') : (typeof link === 'string' ? link : '');
   linkGroup.innerHTML = `
-    <input type="url" class="speaking-link-input" placeholder="https://example.com/link" value="${value}">
+    <input type="text" class="speaking-link-text" placeholder="Link text (e.g., View on LinkedIn)" value="${textValue.replace(/"/g, '&quot;')}" style="flex: 1;">
+    <input type="url" class="speaking-link-url" placeholder="https://example.com/link" value="${urlValue.replace(/"/g, '&quot;')}" style="flex: 1;">
     <button type="button" onclick="removeLink(this)" class="btn-small btn-delete">Remove</button>
   `;
   container.appendChild(linkGroup);
@@ -751,18 +1160,111 @@ async function handleDocxUpload(event, category) {
   
   try {
     const arrayBuffer = await file.arrayBuffer();
-    const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+    const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer }, {
+      styleMap: [
+        "p[style-name='Heading 1'] => h1:fresh",
+        "p[style-name='Heading 2'] => h2:fresh",
+        "p[style-name='Heading 3'] => h3:fresh",
+        "p[style-name='Heading 4'] => h4:fresh",
+        "p[style-name='Heading 5'] => h5:fresh",
+        "p[style-name='Heading 6'] => h6:fresh",
+      ]
+    });
     const html = result.value;
     
-    // Convert HTML to plain text (or keep HTML if you want formatting)
+    // Convert HTML to markdown format (preserves formatting)
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
-    const textContent = tempDiv.textContent || tempDiv.innerText || '';
+    
+    // Function to convert HTML to markdown
+    function htmlToMarkdown(node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return node.textContent || '';
+      }
+      
+      if (node.nodeType !== Node.ELEMENT_NODE) {
+        return '';
+      }
+      
+      const tagName = node.tagName.toLowerCase();
+      const children = Array.from(node.childNodes).map(htmlToMarkdown).join('');
+      
+      switch(tagName) {
+        case 'h1':
+          return '\n\n# ' + children.trim() + '\n\n';
+        case 'h2':
+          return '\n\n## ' + children.trim() + '\n\n';
+        case 'h3':
+          return '\n\n### ' + children.trim() + '\n\n';
+        case 'h4':
+          return '\n\n#### ' + children.trim() + '\n\n';
+        case 'h5':
+          return '\n\n##### ' + children.trim() + '\n\n';
+        case 'h6':
+          return '\n\n###### ' + children.trim() + '\n\n';
+        case 'p':
+          return children.trim() + '\n\n';
+        case 'br':
+          return '\n';
+        case 'strong':
+        case 'b':
+          return '**' + children.trim() + '**';
+        case 'em':
+        case 'i':
+          return '*' + children.trim() + '*';
+        case 'ul':
+          const ulItems = Array.from(node.querySelectorAll('li')).map(li => {
+            const liContent = Array.from(li.childNodes).map(htmlToMarkdown).join('').trim();
+            return '- ' + liContent;
+          }).join('\n');
+          return '\n' + ulItems + '\n\n';
+        case 'ol':
+          const olItems = Array.from(node.querySelectorAll('li')).map((li, index) => {
+            const liContent = Array.from(li.childNodes).map(htmlToMarkdown).join('').trim();
+            return (index + 1) + '. ' + liContent;
+          }).join('\n');
+          return '\n' + olItems + '\n\n';
+        case 'li':
+          return children;
+        case 'a':
+          const href = node.getAttribute('href') || '';
+          const linkText = children.trim() || href;
+          return '[' + linkText + '](' + href + ')';
+        case 'div':
+          const style = node.getAttribute('style') || '';
+          if (style.includes('text-align: center')) {
+            return '\n[center]' + children.trim() + '[/center]\n\n';
+          } else if (style.includes('text-align: right')) {
+            return '\n[right]' + children.trim() + '[/right]\n\n';
+          } else if (style.includes('text-align: left')) {
+            return '\n[left]' + children.trim() + '[/left]\n\n';
+          }
+          return children;
+        default:
+          return children;
+      }
+    }
+    
+    // Convert all nodes to markdown
+    let markdown = Array.from(tempDiv.childNodes).map(htmlToMarkdown).join('');
+    
+    // Clean up excessive newlines (more than 2 consecutive)
+    markdown = markdown.replace(/\n{3,}/g, '\n\n');
+    markdown = markdown.trim();
     
     // Set content in textarea
     const contentField = document.getElementById(category + 'Content');
     if (contentField) {
-      contentField.value = textContent;
+      const existingContent = contentField.value.trim();
+      if (existingContent) {
+        if (confirm('Content field already has text. Replace it with the imported content?')) {
+          contentField.value = markdown;
+        } else {
+          contentField.value = existingContent + '\n\n' + markdown;
+        }
+      } else {
+        contentField.value = markdown;
+      }
     }
     
     statusElement.textContent = '✅ File processed successfully!';
@@ -911,6 +1413,183 @@ function showAlert(elementId, message, type) {
     alertElement.innerHTML = '';
   }, 5000);
 }
+
+// Text formatting functions for inline editors
+window.formatTextInline = function(command, textareaId) {
+  const textarea = document.getElementById(textareaId);
+  if (!textarea) return;
+  
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const selectedText = textarea.value.substring(start, end);
+  
+  if (!selectedText) {
+    const helpMessages = {
+      'bold': 'Please select the text you want to make bold first.',
+      'italic': 'Please select the text you want to make italic first.',
+      'insertUnorderedList': 'Please select the text you want to convert to a bullet list first.',
+      'insertOrderedList': 'Please select the text you want to convert to a numbered list first.'
+    };
+    const message = helpMessages[command] || 'Please select text first to apply formatting.';
+    showAlert('trainingsAlert', `💡 ${message}`, 'info');
+    showAlert('speakingAlert', `💡 ${message}`, 'info');
+    showAlert('publicationsAlert', `💡 ${message}`, 'info');
+    textarea.focus();
+    return;
+  }
+  
+  let formattedText = '';
+  switch(command) {
+    case 'bold':
+      formattedText = `**${selectedText}**`;
+      break;
+    case 'italic':
+      formattedText = `*${selectedText}*`;
+      break;
+    case 'insertUnorderedList':
+      const lines = selectedText.split('\n').filter(line => line.trim());
+      formattedText = '\n' + lines.map(line => `- ${line.trim()}`).join('\n') + '\n';
+      break;
+    case 'insertOrderedList':
+      const numberedLines = selectedText.split('\n').filter(line => line.trim());
+      formattedText = '\n' + numberedLines.map((line, index) => `${index + 1}. ${line.trim()}`).join('\n') + '\n';
+      break;
+    default:
+      return;
+  }
+  
+  textarea.value = textarea.value.substring(0, start) + formattedText + textarea.value.substring(end);
+  textarea.focus();
+  const newCursorPos = start + formattedText.length;
+  textarea.setSelectionRange(newCursorPos, newCursorPos);
+};
+
+window.insertLinkInline = function(textareaId) {
+  const textarea = document.getElementById(textareaId);
+  if (!textarea) return;
+  
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const selectedText = textarea.value.substring(start, end);
+  
+  const url = prompt('Enter URL:', 'https://');
+  if (!url) return;
+  
+  if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('mailto:')) {
+    if (confirm('URL should start with http:// or https://. Add https:// automatically?')) {
+      const finalUrl = 'https://' + url;
+      const linkText = selectedText || url;
+      const markdown = `[${linkText}](${finalUrl})`;
+      textarea.value = textarea.value.substring(0, start) + markdown + textarea.value.substring(end);
+      textarea.focus();
+      const newCursorPos = start + markdown.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+      return;
+    } else {
+      return;
+    }
+  }
+  
+  const linkText = selectedText || 'link text';
+  const markdown = `[${linkText}](${url})`;
+  textarea.value = textarea.value.substring(0, start) + markdown + textarea.value.substring(end);
+  textarea.focus();
+  const newCursorPos = start + markdown.length;
+  textarea.setSelectionRange(newCursorPos, newCursorPos);
+};
+
+window.setAlignmentInline = function(align, textareaId) {
+  const textarea = document.getElementById(textareaId);
+  if (!textarea) return;
+  
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const fullText = textarea.value;
+  
+  if (start !== end) {
+    const selectedText = fullText.substring(start, end);
+    const beforeText = fullText.substring(0, start);
+    const afterText = fullText.substring(end);
+    
+    const alignTagRegex = /^\[(left|center|right)\](.*?)\[\/\1\]$/s;
+    let textToAlign = selectedText;
+    let alreadyAligned = false;
+    let existingAlign = null;
+    
+    if (alignTagRegex.test(selectedText.trim())) {
+      const match = selectedText.trim().match(alignTagRegex);
+      existingAlign = match[1];
+      textToAlign = match[2];
+      alreadyAligned = true;
+    }
+    
+    if (alreadyAligned && existingAlign === align) {
+      const newText = beforeText + textToAlign + afterText;
+      textarea.value = newText;
+      textarea.setSelectionRange(start, start + textToAlign.length);
+    } else {
+      const alignedText = `[${align}]${textToAlign}[/${align}]`;
+      const newText = beforeText + alignedText + afterText;
+      textarea.value = newText;
+      textarea.setSelectionRange(start, start + alignedText.length);
+    }
+  } else {
+    let paraStart = fullText.lastIndexOf('\n\n', start - 1);
+    if (paraStart === -1) paraStart = 0;
+    else paraStart += 2;
+    
+    let paraEnd = fullText.indexOf('\n\n', end);
+    if (paraEnd === -1) paraEnd = fullText.length;
+    
+    const paraText = fullText.substring(paraStart, paraEnd);
+    const beforePara = fullText.substring(0, paraStart);
+    const afterPara = fullText.substring(paraEnd);
+    
+    const alignTagRegex = /^\[(left|center|right)\](.*?)\[\/\1\]$/s;
+    let textToAlign = paraText;
+    let alreadyAligned = false;
+    let existingAlign = null;
+    
+    if (alignTagRegex.test(paraText.trim())) {
+      const match = paraText.trim().match(alignTagRegex);
+      existingAlign = match[1];
+      textToAlign = match[2];
+      alreadyAligned = true;
+    }
+    
+    if (alreadyAligned && existingAlign === align) {
+      const newText = beforePara + textToAlign + afterPara;
+      textarea.value = newText;
+      textarea.setSelectionRange(paraStart, paraStart + textToAlign.length);
+    } else {
+      const alignedText = `[${align}]${textToAlign}[/${align}]`;
+      const newText = beforePara + alignedText + afterPara;
+      textarea.value = newText;
+      textarea.setSelectionRange(paraStart, paraStart + alignedText.length);
+    }
+  }
+  
+  textarea.focus();
+};
+
+// Text formatting functions for main form (backward compatibility)
+window.formatText = function(command) {
+  formatTextInline(command, 'trainingContent');
+  formatTextInline(command, 'speakingDescription');
+  formatTextInline(command, 'publicationContent');
+};
+
+window.insertLink = function() {
+  insertLinkInline('trainingContent');
+  insertLinkInline('speakingDescription');
+  insertLinkInline('publicationContent');
+};
+
+window.setAlignment = function(align) {
+  setAlignmentInline(align, 'trainingContent');
+  setAlignmentInline(align, 'speakingDescription');
+  setAlignmentInline(align, 'publicationContent');
+};
 
 function getErrorMessage(error) {
   if (!error) return 'Unknown error';

@@ -1,0 +1,39 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="speakingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fff5f5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffe5e5;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="600" fill="url(#speakingGradient)"/>
+  
+  <!-- Microphone Icon -->
+  <g transform="translate(350, 180)">
+    <!-- Microphone stand -->
+    <rect x="95" y="120" width="10" height="60" fill="#adb5bd" rx="2"/>
+    <rect x="90" y="175" width="20" height="8" fill="#adb5bd" rx="2"/>
+    
+    <!-- Microphone body -->
+    <ellipse cx="100" cy="100" rx="35" ry="25" fill="#ffffff" opacity="0.95"/>
+    <ellipse cx="100" cy="100" rx="35" ry="25" fill="none" stroke="#dee2e6" stroke-width="2"/>
+    
+    <!-- Microphone grille -->
+    <circle cx="100" cy="95" r="12" fill="none" stroke="#ced4da" stroke-width="1.5"/>
+    <circle cx="100" cy="95" r="8" fill="none" stroke="#ced4da" stroke-width="1.5"/>
+    <line x1="88" y1="95" x2="112" y2="95" stroke="#ced4da" stroke-width="1.5"/>
+    <line x1="100" y1="83" x2="100" y2="107" stroke="#ced4da" stroke-width="1.5"/>
+    
+    <!-- Sound waves -->
+    <path d="M 140 100 Q 160 90, 180 100" fill="none" stroke="#ffc9c9" stroke-width="3" opacity="0.6" stroke-linecap="round"/>
+    <path d="M 140 100 Q 165 85, 190 100" fill="none" stroke="#ffc9c9" stroke-width="2" opacity="0.4" stroke-linecap="round"/>
+    <path d="M 20 100 Q 0 90, -20 100" fill="none" stroke="#ffc9c9" stroke-width="3" opacity="0.6" stroke-linecap="round"/>
+    <path d="M 20 100 Q -5 85, -30 100" fill="none" stroke="#ffc9c9" stroke-width="2" opacity="0.4" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Decorative elements -->
+  <circle cx="100" cy="450" r="35" fill="#ffe0e0" opacity="0.5"/>
+  <circle cx="700" cy="150" r="25" fill="#ffd6d6" opacity="0.4"/>
+</svg>
+
