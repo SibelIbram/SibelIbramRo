@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Name - Professional Landing Page</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo-container">
+                <img src="images/MainLogo.jpg" alt="Logo" class="logo" id="logo">
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-section="about" data-i18n="nav-about">About me</button>
+                <button class="nav-btn" data-section="speaking" data-i18n="nav-speaking">Speaking</button>
+                <button class="nav-btn" data-section="testimonials" data-i18n="nav-testimonials">Testimonials</button>
+                <button class="nav-btn" data-section="trainings" data-i18n="nav-trainings">Trainings</button>
+                <button class="nav-btn" data-section="publications" data-i18n="nav-publications">Publications</button>
+                <button class="nav-btn" data-section="contact" data-i18n="nav-contact">Contact</button>
+                <div class="language-switch">
+                    <button class="lang-btn active" data-lang="en">EN</button>
+                    <button class="lang-btn" data-lang="ro">RO</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Landing Page (Merged: About Me, Speaking, Testimonials) -->
+        <div id="landing-page" class="landing-page active">
+            <!-- About Me Section -->
+            <section id="about" class="landing-section">
+                <div class="about-container">
+                    <div class="about-image-container">
+                        <img src="images/AboutMePic_v2.jpg" alt="About Me" class="about-image">
+                    </div>
+                    <div class="about-text-container">
+                        <h1 class="section-title" data-i18n="about-title">About Me</h1>
+                        <div class="about-text">
+                            <p data-i18n="about-p1">With 20 years of experience in global organizations and a decade focused on continuous improvement my work and myself, I am specialized in transforming Finance and HR operations through strategic alignment, data-driven decision-making, and operational excellence. I'm certified as a Master Black Belt, Agile Coach, and Scrum Master, and I continuously evolve my skillset to drive meaningful, lasting change.</p>
+                            
+                            <p data-i18n="about-p2">I'm passionate about empowering teams and individuals to become strategic business partners by unlocking their potential through innovation, agility, and purpose-driven leadership. I can develop already built teams or build teams from the scratch in every domain of business based on my experience.</p>
+                            
+                            <p><strong data-i18n="about-specializations">Specializations:</strong></p>
+                            
+                            <p><strong data-i18n="about-spec1-title">Continuous Improvement mindset:</strong> <span data-i18n="about-spec1-text">Designing and implementing systems, structures, ways of working, strategies, mindset for an individual, a team, a division or department that align with personal and business goals to deliver sustainable operational excellence.</span></p>
+                            
+                            <p><strong data-i18n="about-spec2-title">Leadership:</strong> <span data-i18n="about-spec2-text">Leading and coaching into high performing, cross-functional teams to generate measurable value across every type of business landscape.</span></p>
+                            
+                            <p><strong data-i18n="about-spec3-title">Strategy to Execution:</strong> <span data-i18n="about-spec3-text">Building a strategy for individuals, team, department and company and ensuring to bridge the gap between vision and implementation to have both ambitious and actionable plans.</span></p>
+                            
+                            <p><strong data-i18n="about-spec4-title">Technology-Driven Transformation:</strong> <span data-i18n="about-spec4-text">Ensuring people and technology work together and support in identifying the type of automations needed</span></p>
+                            
+                            <p><strong data-i18n="about-spec5-title">Stakeholder Engagement:</strong> <span data-i18n="about-spec5-text">Building strong, collaborative and relationships that foster transparency, trust, and long-term value creation.</span></p>
+                            
+                            <p><strong data-i18n="about-purpose-title">What is my purpose?</strong></p>
+                            
+                            <p data-i18n="about-purpose-text">To coach and develop individuals and entrepreneurs in their day to day business, to improve their activities, reduce and eliminate waste, and become better in everything they do with clear and tangible actions and results.</p>
+                            
+                            <p data-i18n="about-p3">I can deliver individual and team trainings, coach and develop based on my experience. I can work in partnership with business leaders to improve their business and build long lasting strategy.</p>
+                            
+                            <p><strong data-i18n="about-collaboration">Collaboration and partnerships in:</strong></p>
+                            
+                            <ul>
+                                <li data-i18n="about-collab1">Trainings individuals & teams</li>
+                                <li data-i18n="about-collab2">Consultant business owners</li>
+                                <li data-i18n="about-collab3">Speaker conferences</li>
+                                <li data-i18n="about-collab4">Coaching individuals & teams</li>
+                                <li data-i18n="about-collab5">Writing and speaking</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Speaking Section -->
+            <section id="speaking" class="landing-section">
+                <div class="section-container">
+                    <h1 class="section-title" data-i18n="speaking-title">Speaking Engagements</h1>
+                    <div class="speaking-list" id="speaking-list">
+                        <!-- Speaking items will be dynamically loaded here from Firebase -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Testimonials Section -->
+            <section id="testimonials" class="landing-section">
+                <div class="section-container">
+                    <h1 class="section-title">Testimonials</h1>
+                    <div class="testimonials-grid">
+                        <div class="testimonial-card">
+                            <div class="testimonial-image">
+                                <img src="images/testimonial-1.jpg" alt="Client 1">
+                            </div>
+                            <div class="testimonial-content">
+                                <p class="testimonial-text">"This training was incredibly valuable and well-structured. The insights provided were practical and immediately applicable."</p>
+                                <p class="testimonial-author">— Client Name, Company</p>
+                            </div>
+                        </div>
+                        <div class="testimonial-card">
+                            <div class="testimonial-image">
+                                <img src="images/testimonial-2.jpg" alt="Client 2">
+                            </div>
+                            <div class="testimonial-content">
+                                <p class="testimonial-text">"An excellent speaker with deep knowledge and engaging presentation style. Highly recommended!"</p>
+                                <p class="testimonial-author">— Client Name, Company</p>
+                            </div>
+                        </div>
+                        <div class="testimonial-card">
+                            <div class="testimonial-image">
+                                <img src="images/testimonial-3.jpg" alt="Client 3">
+                            </div>
+                            <div class="testimonial-content">
+                                <p class="testimonial-text">"The publications are insightful and well-researched. Always look forward to reading new content."</p>
+                                <p class="testimonial-author">— Client Name, Company</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Trainings Section -->
+        <section id="trainings" class="content-section">
+            <div class="section-container">
+                <h1 class="section-title" data-i18n="trainings-title">Trainings</h1>
+                <div class="trainings-grid">
+                    <div class="training-card">
+                        <div class="training-image">
+                            <img src="images/training-1.jpg" alt="Training 1">
+                        </div>
+                        <div class="training-content">
+                            <h2>Training Title 1</h2>
+                            <p>Description of the training program. This covers key topics and learning objectives.</p>
+                            <a href="#" class="btn-primary" data-i18n="trainings-learn-more">Learn More</a>
+                        </div>
+                    </div>
+                    <div class="training-card">
+                        <div class="training-image">
+                            <img src="images/training-2.jpg" alt="Training 2">
+                        </div>
+                        <div class="training-content">
+                            <h2>Training Title 2</h2>
+                            <p>Description of the training program. This covers key topics and learning objectives.</p>
+                            <a href="#" class="btn-primary" data-i18n="trainings-learn-more">Learn More</a>
+                        </div>
+                    </div>
+                    <div class="training-card">
+                        <div class="training-image">
+                            <img src="images/training-3.jpg" alt="Training 3">
+                        </div>
+                        <div class="training-content">
+                            <h2>Training Title 3</h2>
+                            <p>Description of the training program. This covers key topics and learning objectives.</p>
+                            <a href="#" class="btn-primary" data-i18n="trainings-learn-more">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Publications Section (Blog-style) -->
+        <section id="publications" class="content-section">
+            <div class="section-container">
+                <h1 class="section-title" data-i18n="publications-title">Publications</h1>
+                <div class="publications-list">
+                    <article class="publication-card">
+                        <div class="publication-image">
+                            <img src="images/publication-1.jpg" alt="Publication 1">
+                        </div>
+                        <div class="publication-content">
+                            <div class="publication-meta">
+                                <span class="publication-date">December 30, 2025</span>
+                                <span class="publication-category">Category</span>
+                            </div>
+                            <h2 class="publication-title">Publication Title 1</h2>
+                            <p class="publication-excerpt">This is an excerpt from the publication. It provides a brief overview of the content and main points discussed in the article...</p>
+                            <a href="#" class="read-more" data-i18n="publications-read-more">Read More →</a>
+                        </div>
+                    </article>
+                    <article class="publication-card">
+                        <div class="publication-image">
+                            <img src="images/publication-2.jpg" alt="Publication 2">
+                        </div>
+                        <div class="publication-content">
+                            <div class="publication-meta">
+                                <span class="publication-date">December 25, 2025</span>
+                                <span class="publication-category">Category</span>
+                            </div>
+                            <h2 class="publication-title">Publication Title 2</h2>
+                            <p class="publication-excerpt">This is an excerpt from the publication. It provides a brief overview of the content and main points discussed in the article...</p>
+                            <a href="#" class="read-more" data-i18n="publications-read-more">Read More →</a>
+                        </div>
+                    </article>
+                    <article class="publication-card">
+                        <div class="publication-image">
+                            <img src="images/publication-3.jpg" alt="Publication 3">
+                        </div>
+                        <div class="publication-content">
+                            <div class="publication-meta">
+                                <span class="publication-date">December 20, 2025</span>
+                                <span class="publication-category">Category</span>
+                            </div>
+                            <h2 class="publication-title">Publication Title 3</h2>
+                            <p class="publication-excerpt">This is an excerpt from the publication. It provides a brief overview of the content and main points discussed in the article...</p>
+                            <a href="#" class="read-more" data-i18n="publications-read-more">Read More →</a>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Contact Section -->
+        <section id="contact" class="content-section">
+            <div class="section-container">
+                <h1 class="section-title" data-i18n="contact-title">Contact</h1>
+                <div class="contact-container">
+                    <div class="contact-info">
+                        <p><strong data-i18n="contact-email-label">Email:</strong> sibel_ibram@icloud.com</p>
+                        <p><strong data-i18n="contact-phone-label">Phone:</strong> +40733089124</p>
+                        <p><strong data-i18n="contact-location-label">Location:</strong> <span data-i18n="contact-location-value">Bucharest, Romania</span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3 data-i18n="footer-quick-links">Quick Links</h3>
+                <ul>
+                    <li><a href="#" data-section="about" data-i18n="nav-about">About Me</a></li>
+                    <li><a href="#" data-section="speaking" data-i18n="nav-speaking">Speaking</a></li>
+                    <li><a href="#" data-section="testimonials" data-i18n="nav-testimonials">Testimonials</a></li>
+                    <li><a href="#" data-section="trainings" data-i18n="nav-trainings">Trainings</a></li>
+                    <li><a href="#" data-section="publications" data-i18n="nav-publications">Publications</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3 data-i18n="footer-connect">Connect</h3>
+                <ul>
+                    <li><a href="https://www.linkedin.com/in/sibel-ibram-899ba015/" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+                    <li><a href="mailto:sibel_ibram@icloud.com">Email</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3 data-i18n="footer-legal">Legal</h3>
+                <ul>
+                    <li><a href="#" data-i18n="footer-privacy">Privacy Policy</a></li>
+                    <li><a href="#" data-i18n="footer-terms">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p data-i18n="footer-copyright">&copy; 2025 Sibel Ibram. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
