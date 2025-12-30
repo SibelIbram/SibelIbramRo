@@ -351,22 +351,48 @@ async function saveItemDemo(category, itemData) {
 
 // Save to Firebase
 async function saveItemFirebase(category, itemData) {
+  // Check if user is authenticated
+  if (!currentUser && auth) {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('Not authenticated. Please log in again.');
+    }
+    currentUser = user;
+  }
+  
+  if (!db) {
+    throw new Error('Firebase Firestore not initialized. Check firebase-config.js');
+  }
+  
   const collection = getCollectionName(category);
   console.log('Saving to Firebase collection:', collection, 'Data:', itemData);
   
-  if (itemData.id && itemData.id !== '') {
-    // Update existing
-    const { id, ...updateData } = itemData;
-    delete updateData.createdAt; // Don't update createdAt on edit
-    console.log('Updating document:', id, updateData);
-    await db.collection(collection).doc(id).update(updateData);
-  } else {
-    // Create new
-    const { id, ...newData } = itemData;
-    console.log('Creating new document:', newData);
-    const docRef = await db.collection(collection).add(newData);
-    itemData.id = docRef.id;
-    console.log('Created with ID:', docRef.id);
+  try {
+    if (itemData.id && itemData.id !== '') {
+      // Update existing
+      const { id, ...updateData } = itemData;
+      delete updateData.createdAt; // Don't update createdAt on edit
+      console.log('Updating document:', id, updateData);
+      await db.collection(collection).doc(id).update(updateData);
+      console.log('Document updated successfully');
+    } else {
+      // Create new
+      const { id, ...newData } = itemData;
+      console.log('Creating new document:', newData);
+      const docRef = await db.collection(collection).add(newData);
+      itemData.id = docRef.id;
+      console.log('Created with ID:', docRef.id);
+    }
+  } catch (error) {
+    console.error('Firebase save error:', error);
+    // Provide more specific error messages
+    if (error.code === 'permission-denied') {
+      throw new Error('Permission denied. Check Firestore security rules and ensure you are authenticated.');
+    } else if (error.code === 'unavailable') {
+      throw new Error('Firestore is temporarily unavailable. Please try again.');
+    } else {
+      throw new Error(`Save failed: ${error.message || 'Unknown error'}`);
+    }
   }
 }
 
@@ -384,22 +410,46 @@ async function loadItems(category) {
       const storageKey = `demo${category.charAt(0).toUpperCase() + category.slice(1)}`;
       items = JSON.parse(localStorage.getItem(storageKey) || '[]');
     } else {
-      if (typeof db === 'undefined') {
+      if (typeof db === 'undefined' || !db) {
         listElement.innerHTML = '<div class="alert alert-error">Firebase not configured. Using demo mode or check firebase-config.js</div>';
         return;
       }
-      const collection = getCollectionName(category);
-      let query = db.collection(collection);
       
-      // Try to order by createdAt, but handle if index doesn't exist
-      try {
-        query = query.orderBy('createdAt', 'desc');
-      } catch (e) {
-        console.warn('Could not order by createdAt, using default order');
+      // Check if user is authenticated
+      if (!currentUser && auth) {
+        const user = auth.currentUser;
+        if (!user) {
+          listElement.innerHTML = '<div class="alert alert-error">Not authenticated. Please log in again.</div>';
+          showLogin();
+          return;
+        }
+        currentUser = user;
       }
       
-      const snapshot = await query.get();
-      items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const collection = getCollectionName(category);
+      
+      // Try to query with orderBy first, fallback to simple query if index doesn't exist
+      try {
+        let query = db.collection(collection).orderBy('createdAt', 'desc');
+        const snapshot = await query.get();
+        items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      } catch (orderByError) {
+        console.warn('orderBy query failed, trying without orderBy:', orderByError);
+        // Fallback: get all documents without ordering
+        try {
+          const snapshot = await db.collection(collection).get();
+          items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          // Sort manually by createdAt if available
+          items.sort((a, b) => {
+            if (!a.createdAt) return 1;
+            if (!b.createdAt) return -1;
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
+        } catch (fallbackError) {
+          console.error('Fallback query also failed:', fallbackError);
+          throw fallbackError;
+        }
+      }
     }
     
     if (items.length === 0) {
@@ -544,6 +594,19 @@ window.deleteItem = async function(category, itemId, itemTitle) {
       const filtered = items.filter(item => item.id !== itemId);
       localStorage.setItem(storageKey, JSON.stringify(filtered));
     } else {
+      // Check authentication
+      if (!currentUser && auth) {
+        const user = auth.currentUser;
+        if (!user) {
+          throw new Error('Not authenticated. Please log in again.');
+        }
+        currentUser = user;
+      }
+      
+      if (!db) {
+        throw new Error('Firebase Firestore not initialized.');
+      }
+      
       const collection = getCollectionName(category);
       await db.collection(collection).doc(itemId).delete();
     }
@@ -552,7 +615,10 @@ window.deleteItem = async function(category, itemId, itemTitle) {
     loadItems(category);
   } catch (error) {
     console.error('Delete error:', error);
-    showAlert(category + 'Alert', getErrorMessage(error), 'error');
+    const errorMsg = error.code === 'permission-denied' 
+      ? 'Permission denied. Check Firestore security rules.'
+      : getErrorMessage(error);
+    showAlert(category + 'Alert', 'Delete failed: ' + errorMsg, 'error');
   }
 }
 
@@ -576,6 +642,19 @@ async function updatePublishStatus(category, itemId, published) {
         localStorage.setItem(storageKey, JSON.stringify(items));
       }
     } else {
+      // Check authentication
+      if (!currentUser && auth) {
+        const user = auth.currentUser;
+        if (!user) {
+          throw new Error('Not authenticated. Please log in again.');
+        }
+        currentUser = user;
+      }
+      
+      if (!db) {
+        throw new Error('Firebase Firestore not initialized.');
+      }
+      
       const collection = getCollectionName(category);
       await db.collection(collection).doc(itemId).update({ published });
     }
@@ -584,7 +663,10 @@ async function updatePublishStatus(category, itemId, published) {
     loadItems(category);
   } catch (error) {
     console.error('Publish error:', error);
-    showAlert(category + 'Alert', getErrorMessage(error), 'error');
+    const errorMsg = error.code === 'permission-denied' 
+      ? 'Permission denied. Check Firestore security rules.'
+      : getErrorMessage(error);
+    showAlert(category + 'Alert', `${published ? 'Publish' : 'Unpublish'} failed: ` + errorMsg, 'error');
   }
 }
 

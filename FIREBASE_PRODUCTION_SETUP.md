@@ -159,13 +159,17 @@ Your queries filter by `published == true` and order by `createdAt`. Create inde
 3. Verify **Email link (passwordless sign-in)** is disabled (unless you want it)
 
 ### 4.2 Admin User Account
-1. Go to **Authentication** → **Users**
-2. Verify your admin account exists
-3. **Test login** with your credentials
-4. If needed, create additional admin users:
-   - Click **Add user**
-   - Enter email and password
-   - **Save credentials securely**
+
+**IMPORTANT: You must create your first admin user before you can log in!**
+
+1. Go to **Authentication** → **Users** tab
+2. Click the **Add user** button (top of the page)
+3. Enter:
+   - **Email**: Your admin email (e.g., `admin@yourdomain.com`)
+   - **Password**: A strong password (at least 6 characters)
+4. Click **Add user**
+5. **Save your credentials securely** - you'll need them to log into the admin panel
+6. If you need additional admin users later, repeat steps 2-5
 
 ---
 
