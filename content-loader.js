@@ -39,9 +39,14 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Firebase config has placeholder values - using demo mode (localStorage)');
         useDemoMode = true;
       }
+    } else if (!firebaseInitialized) {
+      console.log('Firebase not initialized - using demo mode (localStorage)');
+      useDemoMode = true;
     }
     
     console.log('Using demo mode:', useDemoMode);
+    console.log('DB available:', typeof db !== 'undefined' && db !== null);
+    console.log('Firebase initialized:', typeof firebaseInitialized !== 'undefined' ? firebaseInitialized : 'unknown');
     
     if (useDemoMode) {
       console.log('Demo mode: Loading content from localStorage (same as admin demo mode)');
@@ -56,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
       loadSpeaking();
       loadPublications();
     }
-  }, 100);
+  }, 500); // Increased timeout to give Firebase more time to initialize
 });
 
 // Clear default/placeholder content
@@ -92,7 +97,7 @@ async function loadTrainings() {
   }
   
   // Check if Firebase is available
-  if (typeof db === 'undefined') {
+  if (typeof db === 'undefined' || db === null) {
     console.warn('Firebase not configured - clearing default content');
     clearDefaultContent();
     return;
@@ -108,13 +113,30 @@ async function loadTrainings() {
     let query = db.collection(TRAININGS_COLLECTION_NAME).where('published', '==', true);
     
     // Try to order by createdAt, but handle if index doesn't exist
+    let snapshot;
     try {
       query = query.orderBy('createdAt', 'desc');
-    } catch (e) {
-      console.warn('Could not order trainings by createdAt, using default order');
+      snapshot = await query.get();
+    } catch (orderByError) {
+      console.warn('Could not order trainings by createdAt (index may be missing), trying without orderBy:', orderByError);
+      // Fallback: query without orderBy
+      query = db.collection(TRAININGS_COLLECTION_NAME).where('published', '==', true);
+      snapshot = await query.get();
+      // Sort manually by createdAt if available
+      const docs = snapshot.docs.sort((a, b) => {
+        const aDate = a.data().createdAt;
+        const bDate = b.data().createdAt;
+        if (!aDate) return 1;
+        if (!bDate) return -1;
+        return new Date(bDate) - new Date(aDate);
+      });
+      // Create a new snapshot-like object
+      snapshot = {
+        empty: docs.length === 0,
+        size: docs.length,
+        forEach: (callback) => docs.forEach(callback)
+      };
     }
-    
-    const snapshot = await query.get();
     console.log(`Found ${snapshot.size} published training(s)`);
     
     if (snapshot.empty) {
@@ -175,7 +197,7 @@ async function loadSpeaking() {
   }
   
   // Check if Firebase is available
-  if (typeof db === 'undefined') {
+  if (typeof db === 'undefined' || db === null) {
     console.warn('Firebase not configured - clearing default content');
     clearDefaultContent();
     return;
@@ -190,13 +212,30 @@ async function loadSpeaking() {
     let query = db.collection(SPEAKING_COLLECTION_NAME).where('published', '==', true);
     
     // Try to order by createdAt, but handle if index doesn't exist
+    let snapshot;
     try {
       query = query.orderBy('createdAt', 'desc');
-    } catch (e) {
-      console.warn('Could not order speaking by createdAt, using default order');
+      snapshot = await query.get();
+    } catch (orderByError) {
+      console.warn('Could not order speaking by createdAt (index may be missing), trying without orderBy:', orderByError);
+      // Fallback: query without orderBy
+      query = db.collection(SPEAKING_COLLECTION_NAME).where('published', '==', true);
+      snapshot = await query.get();
+      // Sort manually by createdAt if available
+      const docs = snapshot.docs.sort((a, b) => {
+        const aDate = a.data().createdAt;
+        const bDate = b.data().createdAt;
+        if (!aDate) return 1;
+        if (!bDate) return -1;
+        return new Date(bDate) - new Date(aDate);
+      });
+      // Create a new snapshot-like object
+      snapshot = {
+        empty: docs.length === 0,
+        size: docs.length,
+        forEach: (callback) => docs.forEach(callback)
+      };
     }
-    
-    const snapshot = await query.get();
     console.log(`Found ${snapshot.size} published speaking event(s)`);
     
     if (snapshot.empty) {
@@ -254,7 +293,7 @@ async function loadPublications() {
   }
   
   // Check if Firebase is available
-  if (typeof db === 'undefined') {
+  if (typeof db === 'undefined' || db === null) {
     console.warn('Firebase not configured - clearing default content');
     clearDefaultContent();
     return;
@@ -270,13 +309,30 @@ async function loadPublications() {
     let query = db.collection(PUBLICATIONS_COLLECTION_NAME).where('published', '==', true);
     
     // Try to order by createdAt, but handle if index doesn't exist
+    let snapshot;
     try {
       query = query.orderBy('createdAt', 'desc');
-    } catch (e) {
-      console.warn('Could not order publications by createdAt, using default order');
+      snapshot = await query.get();
+    } catch (orderByError) {
+      console.warn('Could not order publications by createdAt (index may be missing), trying without orderBy:', orderByError);
+      // Fallback: query without orderBy
+      query = db.collection(PUBLICATIONS_COLLECTION_NAME).where('published', '==', true);
+      snapshot = await query.get();
+      // Sort manually by createdAt if available
+      const docs = snapshot.docs.sort((a, b) => {
+        const aDate = a.data().createdAt;
+        const bDate = b.data().createdAt;
+        if (!aDate) return 1;
+        if (!bDate) return -1;
+        return new Date(bDate) - new Date(aDate);
+      });
+      // Create a new snapshot-like object
+      snapshot = {
+        empty: docs.length === 0,
+        size: docs.length,
+        forEach: (callback) => docs.forEach(callback)
+      };
     }
-    
-    const snapshot = await query.get();
     console.log(`Found ${snapshot.size} published publication(s)`);
     
     if (snapshot.empty) {

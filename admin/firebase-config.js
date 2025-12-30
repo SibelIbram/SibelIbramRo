@@ -27,12 +27,39 @@ try {
     firebase.initializeApp(firebaseConfig);
     console.log("Firebase initialized successfully");
     firebaseInitialized = true;
-    auth = firebase.auth();
-    db = firebase.firestore();
-    // Initialize Firebase Storage
+    
+    // Initialize Auth (only if available - main website doesn't need it)
     try {
-      storage = firebase.storage();
-      console.log("Firebase Storage initialized");
+      if (typeof firebase.auth === 'function') {
+        auth = firebase.auth();
+        console.log("Firebase Auth initialized");
+      } else {
+        console.log("Firebase Auth not available (not loaded on this page)");
+        auth = null;
+      }
+    } catch (authError) {
+      console.warn("Firebase Auth not available:", authError);
+      auth = null;
+    }
+    
+    // Initialize Firestore (required for main website)
+    try {
+      db = firebase.firestore();
+      console.log("Firebase Firestore initialized");
+    } catch (firestoreError) {
+      console.error("Firebase Firestore initialization failed:", firestoreError);
+      db = null;
+    }
+    
+    // Initialize Firebase Storage (only if available)
+    try {
+      if (typeof firebase.storage === 'function') {
+        storage = firebase.storage();
+        console.log("Firebase Storage initialized");
+      } else {
+        console.log("Firebase Storage not available (not loaded on this page)");
+        storage = null;
+      }
     } catch (storageError) {
       console.warn("Firebase Storage not available:", storageError);
       storage = null;
@@ -43,12 +70,36 @@ try {
   if (error.code === 'app/duplicate-app') {
     console.log("Firebase app already initialized");
     firebaseInitialized = true;
-    auth = firebase.auth();
-    db = firebase.firestore();
+    
+    // Initialize Auth (only if available)
+    try {
+      if (typeof firebase.auth === 'function') {
+        auth = firebase.auth();
+        console.log("Firebase Auth initialized");
+      } else {
+        auth = null;
+      }
+    } catch (authError) {
+      auth = null;
+    }
+    
+    // Initialize Firestore
+    try {
+      db = firebase.firestore();
+      console.log("Firebase Firestore initialized");
+    } catch (firestoreError) {
+      console.error("Firebase Firestore initialization failed:", firestoreError);
+      db = null;
+    }
+    
     // Try to get storage if app already exists
     try {
-      storage = firebase.storage();
-      console.log("Firebase Storage initialized");
+      if (typeof firebase.storage === 'function') {
+        storage = firebase.storage();
+        console.log("Firebase Storage initialized");
+      } else {
+        storage = null;
+      }
     } catch (storageError) {
       console.warn("Firebase Storage not available:", storageError);
       storage = null;
@@ -56,6 +107,7 @@ try {
   } else {
     console.log("Firebase configuration error. Using demo mode (localStorage).");
     firebaseInitialized = false;
+    db = null;
   }
 }
 
