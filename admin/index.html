@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Sibel Ibram Website</title>
+  <title>sibelibram.ro - Admin</title>
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <style>
     * {
       margin: 0;
@@ -615,7 +616,17 @@
               <input type="text" id="speakingDate" required placeholder="e.g., October 2025">
             </div>
             <div class="form-group">
-              <label for="speakingDescription">Description <span style="color: red;">*</span></label>
+              <label for="speakingShortDescription">Short Description (for main page)</label>
+              <textarea id="speakingShortDescription" placeholder="Brief description shown on the main page. Leave empty to hide description on main page." rows="3"></textarea>
+              <small style="color: #666; display: block; margin-top: 0.3rem;">This will be shown on the main page. Full description below will only appear on the "Read More" page.</small>
+            </div>
+            <div class="form-group">
+              <label for="speakingDescription">Full Description (for Read More page) <span style="color: red;">*</span></label>
+              <div style="margin-bottom: 0.5rem;">
+                <input type="file" id="speakingDocxUpload" accept=".docx" style="display: none;" onchange="handleDocxUpload(event, 'speaking')">
+                <label for="speakingDocxUpload" class="file-upload-label">📄 Upload .docx File</label>
+                <span id="speakingDocxStatus" style="margin-left: 1rem; color: #666; font-size: 0.9rem;"></span>
+              </div>
               <div class="editor-toolbar">
                 <button type="button" class="editor-btn" onclick="formatTextInline('bold', 'speakingDescription')" title="Bold"><strong>B</strong></button>
                 <button type="button" class="editor-btn" onclick="formatTextInline('italic', 'speakingDescription')" title="Italic"><em>I</em></button>
@@ -628,7 +639,7 @@
                   <button type="button" class="editor-btn" onclick="setAlignmentInline('right', 'speakingDescription')" title="Align Right" style="font-size: 1.1rem;">➡</button>
                 </div>
               </div>
-              <textarea id="speakingDescription" required placeholder="Description of the speaking engagement"></textarea>
+              <textarea id="speakingDescription" required placeholder="Full description (shown on Read More page, or upload .docx file above)" style="min-height: 300px;"></textarea>
             </div>
             <div class="form-group">
               <label for="speakingImage">Image</label>

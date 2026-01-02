@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Training Details - Sibel Ibram</title>
+    <title>sibelibram.ro</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="styles.css">
     <style>
         .detail-container {
@@ -75,7 +76,6 @@
                 </a>
             </div>
             <nav class="nav-menu">
-                <a href="index.html#trainings" class="nav-btn">← Back to Trainings</a>
             </nav>
         </div>
     </header>
@@ -89,10 +89,10 @@
             </div>
             <div id="error" class="error" style="display: none;">
                 <p>Training not found or error loading content.</p>
-                <a href="index.html#trainings" class="back-link">← Back to Trainings</a>
+                <a href="index.html#trainings" class="back-link" data-i18n="back-to-trainings">← Back to Trainings</a>
             </div>
             <div id="content" style="display: none;">
-                <a href="index.html#trainings" class="back-link">← Back to Trainings</a>
+                <a href="index.html#trainings" class="back-link" data-i18n="back-to-trainings">← Back to Trainings</a>
                 <div class="detail-header">
                     <h1 class="detail-title" id="detailTitle"></h1>
                     <div class="detail-meta" id="detailMeta"></div>
@@ -134,6 +134,9 @@
     
     <!-- Firebase Config -->
     <script src="admin/firebase-config.js"></script>
+    
+    <!-- Main Script (for translations) -->
+    <script src="script.js"></script>
     
     <!-- Detail Page Loader -->
     <script src="training-detail-loader.js"></script>

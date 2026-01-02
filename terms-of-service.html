@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sibelibram.ro - Terms of Service</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .legal-container {
+            max-width: 900px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+        .legal-content {
+            line-height: 1.8;
+            font-size: 1.1rem;
+            color: #333;
+        }
+        .legal-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        .legal-content h2 {
+            font-size: 1.8rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        .legal-content h3 {
+            font-size: 1.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
+            color: #34495e;
+        }
+        .legal-content p {
+            margin-bottom: 1rem;
+        }
+        .legal-content ul, .legal-content ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+        .legal-content li {
+            margin-bottom: 0.5rem;
+        }
+        .legal-content strong {
+            color: #2c3e50;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: #061572;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo-container">
+                <a href="index.html">
+                    <img src="images/MainLogo.jpg" alt="Logo" class="logo" id="logo">
+                </a>
+            </div>
+            <nav class="nav-menu">
+                <div class="language-switch">
+                    <button class="lang-btn active" data-lang="en">EN</button>
+                    <button class="lang-btn" data-lang="ro">RO</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="legal-container">
+            <a href="index.html" class="back-link" data-i18n="back-to-home">← Back to Home</a>
+            
+            <div class="legal-content" id="legalContent">
+                <!-- Content will be loaded based on language -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3 data-i18n="footer-quick-links">Quick Links</h3>
+                <ul>
+                    <li><a href="index.html#about" data-i18n="nav-about">About Me</a></li>
+                    <li><a href="index.html#speaking" data-i18n="nav-speaking">Speaking</a></li>
+                    <li><a href="index.html#testimonials" data-i18n="nav-testimonials">Testimonials</a></li>
+                    <li><a href="index.html#trainings" data-i18n="nav-trainings">Trainings</a></li>
+                    <li><a href="index.html#publications" data-i18n="nav-publications">Publications</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3 data-i18n="footer-legal">Legal</h3>
+                <ul>
+                    <li><a href="privacy-policy.html" data-i18n="footer-privacy">Privacy Policy</a></li>
+                    <li><a href="terms-of-service.html" data-i18n="footer-terms">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p data-i18n="footer-copyright">&copy; 2025 Sibel Ibram. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        // Legal content in both languages
+        const legalContent = {
+            en: `<p>Terms &amp; Conditions</p><p>Website: https://www.sibelibram.ro/ | Last Updated: 31 Dec 2025</p><p>Owner: Sibel Ibram | Email: sibel_ibram@icloud.com | Address: N/A</p><p><strong>Terms &amp; Conditions (English)</strong></p><p><strong>1. Acceptance of Terms</strong></p><p>By accessing or using this website (the 'Site'), you agree to be bound by these Terms &amp; Conditions ('Terms'). If you do not agree, please discontinue use.</p><p><strong>2. Who We Are</strong></p><p>Owner/Operator: Sibel Ibram. Contact: sibel_ibram@icloud.com. Address: N/A.</p><p><strong>3. Changes to These Terms</strong></p><p>We may update these Terms periodically. The 'Last Updated' date reflects the current version. Continued use after changes constitutes acceptance of the revised Terms.</p><p><strong>4. Site Access and Availability</strong></p><p>We endeavour to keep the Site available and accurate but do not guarantee uninterrupted or error-free operation. We may modify, suspend, or discontinue the Site without notice.</p><p><strong>5. Intellectual Property</strong></p><p>Unless otherwise stated, the content on the Site is owned or licensed by Sibel Ibram and protected by applicable intellectual property laws. You may not copy, distribute, adapt, or create derivative works without prior written permission.</p><p><strong>6. Limitation of Liability</strong></p><p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, DATA, USE, OR GOODWILL, ARISING OUT OF OR RELATED TO YOUR USE OF THE SITE.</p><p><strong>7. Governing Law &amp; Jurisdiction</strong></p><p>These Terms are governed by Romanian law and, where applicable, international principles. You agree to the exclusive jurisdiction of the competent courts in Bucharest, Romania, and acknowledge that global standards may apply for cross-border disputes.</p><p><strong>8. Contact</strong></p><p>Questions about these Terms? Email: sibel_ibram@icloud.com.</p>`,
+            ro: `<p><strong>Termeni și Condiții</strong> </p><p>Website: https://www.sibelibram.ro/ | Ultima actualizare: 31 Dec 2025</p><p>Proprietar: Sibel Ibram | Email: sibel_ibram@icloud.com | Adresă: N/A</p><p><strong>1. Acceptarea Termenilor</strong></p><p>Prin accesarea sau utilizarea acestui website (Site-ul), sunteți de acord să respectați acești Termeni și Condiții (Termeni). Dacă nu sunteți de acord, vă rugăm să nu utilizați Site-ul.</p><p><strong>2. Cine Suntem</strong></p><p>Proprietar/Operator: Sibel Ibram. Contact: sibel_ibram@icloud.com. Adresă: N/A.</p><p><strong>3. Modificări ale Termenilor</strong></p><p>Putem actualiza acești Termeni periodic. Data 'Ultima actualizare' reflectă versiunea curentă. Continuarea utilizării după modificări reprezintă acceptarea Termenilor revizuiți.</p><p><strong>4. Acces și Disponibilitate</strong></p><p>Depunem eforturi pentru a menține Site-ul disponibil și corect, însă nu garantăm funcționarea neîntreruptă sau fără erori. Putem modifica, suspenda sau întrerupe Site-ul fără notificare.</p><p><strong>5. Proprietate Intelectuală</strong></p><p>Dacă nu se precizează altfel, conținutul de pe Site este deținut sau licențiat de Sibel Ibram și este protejat de legislația aplicabilă privind proprietatea intelectuală. Nu aveți voie să copiați, distribuiți, adaptați sau să creați opere derivate fără permisiune prealabilă în scris.</p><p><strong>6. Limitarea Răspunderii</strong></p><p>ÎN LIMITA MAXIMĂ PERMISĂ DE LEGE, NU RĂSPUNDEM PENTRU DAUNE INDIRECTE, INCIDENTALE, SPECIALE, CONSECINȚIALE, EXEMPLARE SAU PUNITIVE, SAU PENTRU PIERDERI DE PROFIT, DATE, UTILIZARE SAU FOND COMERCIAL, REZULTATE DIN SAU ÎN LEGĂTURĂ CU UTILIZAREA SITE-ULUI.</p><p><strong>7. Legea Aplicabilă și Jurisdicția</strong></p><p>Acești Termeni sunt guvernați de legislația României și, unde este aplicabil, de principii internaționale. Sunteți de acord cu competența exclusivă a instanțelor competente din București, România, și recunoașteți că standardele globale pot fi aplicabile în cazul disputelor transfrontaliere.</p><p><strong>8. Contact</strong></p><p>Întrebări privind acești Termeni? Email: sibel_ibram@icloud.com.</p>`
+        };
+
+        // Load content based on current language
+        function loadLegalContent() {
+            const lang = localStorage.getItem('preferredLanguage') || 'en';
+            const content = legalContent[lang] || legalContent.en;
+            document.getElementById('legalContent').innerHTML = content;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLegalContent();
+            
+            // Handle language switching
+            const langButtons = document.querySelectorAll('.lang-btn');
+            langButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const lang = btn.getAttribute('data-lang');
+                    localStorage.setItem('preferredLanguage', lang);
+                    langButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    loadLegalContent();
+                    if (typeof translatePage === 'function') {
+                        translatePage(lang);
+                    }
+                });
+            });
+
+            // Set initial language button state
+            const currentLang = localStorage.getItem('preferredLanguage') || 'en';
+            langButtons.forEach(btn => {
+                if (btn.getAttribute('data-lang') === currentLang) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

@@ -1,3 +1,146 @@
+// Translations object (defined early so getTranslation can access it)
+const translations = {
+    en: {
+        // Navigation
+        'nav-about': 'About me',
+        'nav-speaking': 'Speaking',
+        'nav-testimonials': 'Testimonials',
+        'nav-trainings': 'Trainings',
+        'nav-publications': 'Publications',
+        'nav-contact': 'Contact',
+        // About Me
+        'about-title': 'About Me',
+        'about-p1': 'With 20 years of experience in global organizations and a decade focused on continuous improvement, I am specialized in transforming through strategic alignment, data-driven decision-making, and operational excellence. I\'m certified as a Master Black Belt, Agile Coach, and Scrum Master, and I continuously evolve my skillset to drive meaningful, lasting change.',
+        'about-p2': 'I\'m passionate about empowering teams and individuals to become strategic business partners by unlocking their potential through innovation, agility, and purpose-driven leadership. I can develop already built teams or build teams from the scratch, based on my experience.',
+        'about-specializations': 'Specializations:',
+        'about-spec1-title': 'Continuous Improvement mindset:',
+        'about-spec1-text': 'Designing and implementing systems, structures, ways of working, strategies, mindset for an individual, a team, a division or department that align with personal and business goals to deliver sustainable operational excellence.',
+        'about-spec2-title': 'Leadership:',
+        'about-spec2-text': 'Leading and coaching into high performing, cross-functional teams to generate measurable value across every type of business landscape.',
+        'about-spec3-title': 'Strategy to Execution:',
+        'about-spec3-text': 'Building a strategy for individuals and teams and ensuring to bridge the gap between vision and implementation to have both ambitious and actionable plans.',
+        'about-spec4-title': 'Technology-Driven Transformation:',
+        'about-spec4-text': 'Ensuring people and technology work together and support in identifying the type of automations needed',
+        'about-spec5-title': 'Stakeholder Engagement:',
+        'about-spec5-text': 'Building strong, collaborative and relationships that foster transparency, trust, and long-term value creation.',
+        'about-purpose-title': 'What is my purpose?',
+        'about-purpose-text': 'To coach and develop individuals and entrepreneurs in their day-to-day business, to improve their activities, reduce and eliminate waste, decrease costs, and become better in everything they do with clear and tangible actions and results.',
+        'about-collaboration': 'Collaboration & partnerships in:',
+        'about-collab1': 'Adapted Trainings for individuals & teams',
+        'about-collab2': 'Consultant business owners',
+        'about-collab3': 'Speaker conferences',
+        // Speaking
+        'speaking-title': 'Speaking Engagements',
+        'speaking-location-label': 'Location',
+        'speaking-date-label': 'Date:',
+        'speaking-more-info': 'More information in the links below:',
+        'speaking-read-more': 'Read More →',
+        // Trainings
+        'trainings-title': 'Trainings',
+        'trainings-learn-more': 'Learn More',
+        'trainings-read-more': 'Read More →',
+        'back-to-trainings': '← Back to Trainings',
+        // Publications
+        'publications-title': 'Publications',
+        'publications-read-more': 'Read More →',
+        'back-to-publications': '← Back to Publications',
+        // Speaking
+        'back-to-speaking': '← Back to Speaking',
+        // Legal pages
+        'back-to-home': '← Back to Home',
+        // Contact
+        'contact-title': 'Contact',
+        'contact-email-label': 'Email:',
+        'contact-phone-label': 'Phone:',
+        'contact-location-label': 'Location:',
+        'contact-location-value': 'Bucharest, Romania',
+        // Footer
+        'footer-quick-links': 'Quick Links',
+        'footer-connect': 'Connect',
+        'footer-legal': 'Legal',
+        'footer-privacy': 'Privacy Policy',
+        'footer-terms': 'Terms of Service',
+        'footer-copyright': '© 2025 Sibel Ibram. All rights reserved.'
+    },
+    ro: {
+        // Navigation
+        'nav-about': 'Despre mine',
+        'nav-speaking': 'Prezentări',
+        'nav-testimonials': 'Testimoniale',
+        'nav-trainings': 'Formări',
+        'nav-publications': 'Publicații',
+        'nav-contact': 'Contact',
+        // About Me
+        'about-title': 'Despre mine',
+        'about-p1': 'Cu 20 de ani de experiență în organizații globale și un deceniu dedicat îmbunătățirii continue, sunt specializată în transformare prin aliniere strategică, luarea deciziilor bazate pe date și excelență operațională. Sunt certificată ca Master Black Belt, Agile Coach și Scrum Master și îmi dezvolt constant competențele pentru a genera schimbări semnificative și durabile.',
+        'about-p2': 'Sunt pasionată de a sprijini echipele și oamenii să devină parteneri strategici de afaceri, prin valorificarea potențialului lor prin inovație, agilitate și un leadership orientat spre obiective clare. Pot dezvolta echipe deja formate sau construi echipe de la zero, bazându-mă pe experiența mea.',
+        'about-specializations': 'Specializări:',
+        'about-spec1-title': 'Mentalitate de Îmbunătățire Continuă:',
+        'about-spec1-text': 'Proiectarea și implementarea sistemelor, structurilor, modurilor de lucru, strategiilor și mentalității pentru un individ, o echipă, o divizie sau un departament, aliniate la obiectivele personale și de business, pentru a livra excelență operațională sustenabilă.',
+        'about-spec2-title': 'Leadership:',
+        'about-spec2-text': 'Conducerea și coaching-ul echipelor sa fie performante, multifuncționale, pentru a genera valoare măsurabilă în orice tip de mediu de afaceri.',
+        'about-spec3-title': 'De la Strategie la Execuție:',
+        'about-spec3-text': 'Construirea unei strategii pentru indivizi și echipe și asigurarea punții dintre viziune și implementare, pentru a avea planuri ambițioase și realizabile.',
+        'about-spec4-title': 'Transformare bazată pe Tehnologie:',
+        'about-spec4-text': 'Asigurarea colaborării dintre oameni și tehnologie și sprijin în identificarea tipului de automatizări necesare',
+        'about-spec5-title': 'Construirea de relații puternice:',
+        'about-spec5-text': 'colaborative, care promovează transparența, încrederea și crearea de valoare pe termen lung.',
+        'about-purpose-title': 'Care este scopul meu?',
+        'about-purpose-text': 'Să ghidez și să dezvolt indivizi și antreprenori în activitățile lor zilnice, pentru a-și îmbunătăți procesele, a reduce și elimina pierderile, a diminua costurile și a deveni mai buni în tot ceea ce fac, prin acțiuni și rezultate clare și tangibile.',
+        'about-collaboration': 'Colaborare & parteneriate în:',
+        'about-collab1': 'Traininguri adaptate pentru indivizi și echipe',
+        'about-collab2': 'Consultanță pentru proprietarii de afaceri',
+        'about-collab3': 'Speaker la conferințe',
+        // Speaking
+        'speaking-title': 'Prezentări',
+        'speaking-location-label': 'Locație',
+        'speaking-date-label': 'Data:',
+        'speaking-more-info': 'Mai multe informații în linkurile de mai jos:',
+        'speaking-read-more': 'Citește mai mult →',
+        // Trainings
+        'trainings-title': 'Formări',
+        'trainings-learn-more': 'Află mai mult',
+        'trainings-read-more': 'Citește mai mult →',
+        'back-to-trainings': '← Înapoi la Formări',
+        // Publications
+        'publications-title': 'Publicații',
+        'publications-read-more': 'Citește mai mult →',
+        'back-to-publications': '← Înapoi la Publicații',
+        // Speaking
+        'back-to-speaking': '← Înapoi la Prezentări',
+        // Legal pages
+        'back-to-home': '← Înapoi la Pagina Principală',
+        // Contact
+        'contact-title': 'Contact',
+        'contact-email-label': 'Email:',
+        'contact-phone-label': 'Telefon:',
+        'contact-location-label': 'Locație:',
+        'contact-location-value': 'București, România',
+        // Footer
+        'footer-quick-links': 'Linkuri rapide',
+        'footer-connect': 'Contact',
+        'footer-legal': 'Legal',
+        'footer-privacy': 'Politica de confidențialitate',
+        'footer-terms': 'Termeni și condiții',
+        'footer-copyright': '© 2025 Sibel Ibram. Toate drepturile rezervate.'
+    }
+};
+
+// Function to get translated text (accessible globally, available immediately)
+window.getTranslation = function(key, lang) {
+    if (!lang) {
+        lang = localStorage.getItem('preferredLanguage') || 'en';
+    }
+    if (translations[lang] && translations[lang][key]) {
+        return translations[lang][key];
+    }
+    // Fallback to English if translation not found
+    if (translations.en && translations.en[key]) {
+        return translations.en[key];
+    }
+    return key; // Return key if no translation found
+};
+
 // Navigation functionality
 document.addEventListener('DOMContentLoaded', () => {
     // Get all navigation buttons and sections
@@ -11,9 +154,89 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Sections that are separate pages (switchable)
     const separateSections = ['trainings', 'publications', 'contact'];
+    
+    // Function to update active nav button (define early so we can use it)
+    function updateActiveNavButton(sectionId, isScrollUpdate = false) {
+        // Remove active class from all nav buttons
+        navButtons.forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // Add active class to corresponding nav button
+        const activeBtn = document.querySelector(`.nav-btn[data-section="${sectionId}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
+    }
+    
+    // Check hash IMMEDIATELY to prevent flicker - set initial state before anything renders
+    let sectionIdToShow = null;
+    const hash = window.location.hash;
+    
+    if (hash) {
+        // If hash exists, use it
+        sectionIdToShow = hash.substring(1); // Remove the #
+        // Store in sessionStorage for back button support
+        if (separateSections.includes(sectionIdToShow) || landingPageSections.includes(sectionIdToShow)) {
+            sessionStorage.setItem('lastSection', sectionIdToShow);
+        }
+    } else {
+        // No hash - check if we came from a detail page (back button scenario)
+        const referrer = document.referrer;
+        const isFromDetailPage = referrer && (
+            referrer.includes('training-detail.html') || 
+            referrer.includes('publication-detail.html') || 
+            referrer.includes('speaking-detail.html')
+        );
+        
+        if (isFromDetailPage) {
+            // Restore the last section from sessionStorage
+            const lastSection = sessionStorage.getItem('lastSection');
+            if (lastSection && (separateSections.includes(lastSection) || landingPageSections.includes(lastSection))) {
+                sectionIdToShow = lastSection;
+                // Update URL hash without triggering navigation
+                history.replaceState(null, '', `#${lastSection}`);
+            }
+        }
+    }
+    
+    // Apply the section to show
+    if (sectionIdToShow) {
+        if (separateSections.includes(sectionIdToShow)) {
+            // Hide landing page immediately if going to a separate section
+            if (landingPage) {
+                landingPage.classList.remove('active');
+            }
+            // Hide all sections first
+            contentSections.forEach(section => {
+                section.classList.remove('active');
+            });
+            // Show target section
+            const targetSection = document.getElementById(sectionIdToShow);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            // Update nav button
+            updateActiveNavButton(sectionIdToShow);
+            // Scroll to top immediately to prevent any flicker
+            window.scrollTo(0, 0);
+        } else if (landingPageSections.includes(sectionIdToShow)) {
+            // Ensure landing page is visible for landing page sections
+            if (landingPage) {
+                landingPage.classList.add('active');
+            }
+            contentSections.forEach(section => {
+                section.classList.remove('active');
+            });
+            updateActiveNavButton(sectionIdToShow);
+        }
+    }
 
     // Function to scroll to a section within the landing page
     function scrollToLandingSection(sectionId) {
+        // Store section in sessionStorage for back button support
+        sessionStorage.setItem('lastSection', sectionId);
+        
         const targetSection = document.getElementById(sectionId);
         if (targetSection) {
             // Show landing page if hidden
@@ -49,6 +272,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to switch to a separate section
     function switchToSeparateSection(sectionId) {
+        // Store section in sessionStorage for back button support
+        sessionStorage.setItem('lastSection', sectionId);
+        
         // Hide landing page
         if (landingPage) {
             landingPage.classList.remove('active');
@@ -70,20 +296,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update active nav button
         updateActiveNavButton(sectionId);
-    }
-
-    // Function to update active nav button
-    function updateActiveNavButton(sectionId, isScrollUpdate = false) {
-        // Remove active class from all nav buttons
-        navButtons.forEach(btn => {
-            btn.classList.remove('active');
-        });
-
-        // Add active class to corresponding nav button
-        const activeBtn = document.querySelector(`.nav-btn[data-section="${sectionId}"]`);
-        if (activeBtn) {
-            activeBtn.classList.add('active');
-        }
     }
 
     // Track if we're currently scrolling programmatically (to avoid conflicts)
@@ -202,127 +414,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Translations object
-    const translations = {
-        en: {
-            // Navigation
-            'nav-about': 'About me',
-            'nav-speaking': 'Speaking',
-            'nav-testimonials': 'Testimonials',
-            'nav-trainings': 'Trainings',
-            'nav-publications': 'Publications',
-            'nav-contact': 'Contact',
-            // About Me
-            'about-title': 'About Me',
-            'about-p1': 'With 20 years of experience in global organizations and a decade focused on continuous improvement my work and myself, I am specialized in transforming Finance and HR operations through strategic alignment, data-driven decision-making, and operational excellence. I\'m certified as a Master Black Belt, Agile Coach, and Scrum Master, and I continuously evolve my skillset to drive meaningful, lasting change.',
-            'about-p2': 'I\'m passionate about empowering teams and individuals to become strategic business partners by unlocking their potential through innovation, agility, and purpose-driven leadership. I can develop already built teams or build teams from the scratch in every domain of business based on my experience.',
-            'about-specializations': 'Specializations:',
-            'about-spec1-title': 'Continuous Improvement mindset:',
-            'about-spec1-text': 'Designing and implementing systems, structures, ways of working, strategies, mindset for an individual, a team, a division or department that align with personal and business goals to deliver sustainable operational excellence.',
-            'about-spec2-title': 'Leadership:',
-            'about-spec2-text': 'Leading and coaching into high performing, cross-functional teams to generate measurable value across every type of business landscape.',
-            'about-spec3-title': 'Strategy to Execution:',
-            'about-spec3-text': 'Building a strategy for individuals, team, department and company and ensuring to bridge the gap between vision and implementation to have both ambitious and actionable plans.',
-            'about-spec4-title': 'Technology-Driven Transformation:',
-            'about-spec4-text': 'Ensuring people and technology work together and support in identifying the type of automations needed',
-            'about-spec5-title': 'Stakeholder Engagement:',
-            'about-spec5-text': 'Building strong, collaborative and relationships that foster transparency, trust, and long-term value creation.',
-            'about-purpose-title': 'What is my purpose?',
-            'about-purpose-text': 'To coach and develop individuals and entrepreneurs in their day to day business, to improve their activities, reduce and eliminate waste, and become better in everything they do with clear and tangible actions and results.',
-            'about-p3': 'I can deliver individual and team trainings, coach and develop based on my experience. I can work in partnership with business leaders to improve their business and build long lasting strategy.',
-            'about-collaboration': 'Collaboration and partnerships in:',
-            'about-collab1': 'Trainings individuals & teams',
-            'about-collab2': 'Consultant business owners',
-            'about-collab3': 'Speaker conferences',
-            'about-collab4': 'Coaching individuals & teams',
-            'about-collab5': 'Writing and speaking',
-            // Speaking
-            'speaking-title': 'Speaking Engagements',
-            'speaking-location-label': 'Location',
-            'speaking-date-label': 'Date:',
-            'speaking-location-label': 'Location',
-            'speaking-more-info': 'More information in the links below:',
-            'speaking-location-label': 'Location',
-            // Trainings
-            'trainings-title': 'Trainings',
-            'trainings-learn-more': 'Learn More',
-            // Publications
-            'publications-title': 'Publications',
-            'publications-read-more': 'Read More →',
-            // Contact
-            'contact-title': 'Contact',
-            'contact-email-label': 'Email:',
-            'contact-phone-label': 'Phone:',
-            'contact-location-label': 'Location:',
-            'contact-location-value': 'Bucharest, Romania',
-            // Footer
-            'footer-quick-links': 'Quick Links',
-            'footer-connect': 'Connect',
-            'footer-legal': 'Legal',
-            'footer-privacy': 'Privacy Policy',
-            'footer-terms': 'Terms of Service',
-            'footer-copyright': '© 2025 Sibel Ibram. All rights reserved.'
-        },
-        ro: {
-            // Navigation
-            'nav-about': 'Despre mine',
-            'nav-speaking': 'Prezentări',
-            'nav-testimonials': 'Testimoniale',
-            'nav-trainings': 'Formări',
-            'nav-publications': 'Publicații',
-            'nav-contact': 'Contact',
-            // About Me
-            'about-title': 'Despre mine',
-            'about-p1': 'Cu 20 de ani de experiență în organizații globale și un deceniu axat pe îmbunătățire continuă a muncii și a mea, sunt specializat în transformarea operațiunilor de Finanțe și Resurse Umane prin aliniere strategică, luare de decizii bazată pe date și excelență operațională. Sunt certificat ca Master Black Belt, Agile Coach și Scrum Master, și îmi evoluez continuu competențele pentru a genera schimbări semnificative și durabile.',
-            'about-p2': 'Sunt pasionat de a împuternici echipele și persoanele să devină parteneri de afaceri strategici prin deblocarea potențialului lor prin inovație, agilitate și leadership orientat pe scop. Pot dezvolta echipe deja construite sau pot construi echipe de la zero în orice domeniu de afaceri bazat pe experiența mea.',
-            'about-specializations': 'Specializări:',
-            'about-spec1-title': 'Mentalitate de îmbunătățire continuă:',
-            'about-spec1-text': 'Proiectarea și implementarea sistemelor, structurilor, modalităților de lucru, strategiilor, mentalității pentru o persoană, o echipă, o divizie sau departament care se aliniază cu obiectivele personale și de afaceri pentru a livra excelență operațională durabilă.',
-            'about-spec2-title': 'Leadership:',
-            'about-spec2-text': 'Conducerea și coaching-ul echipelor de înaltă performanță, cross-funcționale pentru a genera valoare măsurabilă în orice tip de peisaj de afaceri.',
-            'about-spec3-title': 'De la Strategie la Execuție:',
-            'about-spec3-text': 'Construirea unei strategii pentru persoane, echipă, departament și companie și asigurarea legăturii între viziune și implementare pentru a avea planuri atât ambițioase cât și acționabile.',
-            'about-spec4-title': 'Transformare bazată pe tehnologie:',
-            'about-spec4-text': 'Asigurarea că oamenii și tehnologia lucrează împreună și sprijină identificarea tipului de automatizări necesare',
-            'about-spec5-title': 'Angajarea stakeholderilor:',
-            'about-spec5-text': 'Construirea unor relații puternice, collaborative care promovează transparența, încrederea și crearea de valoare pe termen lung.',
-            'about-purpose-title': 'Care este scopul meu?',
-            'about-purpose-text': 'Să antrenez și să dezvolt persoane și antreprenori în activitatea lor zilnică de afaceri, să îmbunătățesc activitățile lor, să reduc și să elimin risipa, și să devin mai buni în tot ce fac cu acțiuni și rezultate clare și tangibile.',
-            'about-p3': 'Pot livra formări individuale și de echipă, pot antrena și dezvolta bazat pe experiența mea. Pot lucra în parteneriat cu liderii de afaceri pentru a îmbunătăți afacerea lor și a construi o strategie de durată.',
-            'about-collaboration': 'Colaborare și parteneriate în:',
-            'about-collab1': 'Formări persoane & echipe',
-            'about-collab2': 'Consultant proprietari de afaceri',
-            'about-collab3': 'Prezentări conferințe',
-            'about-collab4': 'Coaching persoane & echipe',
-            'about-collab5': 'Scriere și prezentări',
-            // Speaking
-            'speaking-title': 'Prezentări',
-            'speaking-location-label': 'Locație',
-            'speaking-date-label': 'Data:',
-            'speaking-more-info': 'Mai multe informații în linkurile de mai jos:',
-            'speaking-location-label': 'Locație',
-            // Trainings
-            'trainings-title': 'Formări',
-            'trainings-learn-more': 'Află mai mult',
-            // Publications
-            'publications-title': 'Publicații',
-            'publications-read-more': 'Citește mai mult →',
-            // Contact
-            'contact-title': 'Contact',
-            'contact-email-label': 'Email:',
-            'contact-phone-label': 'Telefon:',
-            'contact-location-label': 'Locație:',
-            'contact-location-value': 'București, România',
-            // Footer
-            'footer-quick-links': 'Linkuri rapide',
-            'footer-connect': 'Contact',
-            'footer-legal': 'Legal',
-            'footer-privacy': 'Politica de confidențialitate',
-            'footer-terms': 'Termeni și condiții',
-            'footer-copyright': '© 2025 Sibel Ibram. Toate drepturile rezervate.'
-        }
-    };
-
     // Function to translate the page
     function translatePage(lang) {
         // Update HTML lang attribute
@@ -399,8 +490,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (initialLangBtn) {
         langButtons.forEach(btn => btn.classList.remove('active'));
         initialLangBtn.classList.add('active');
-        translatePage(initialLang);
     }
+    // Always translate the page, even if there are no language buttons (for detail pages)
+    translatePage(initialLang);
 
 
     // Smooth scroll for anchor links
@@ -422,6 +514,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load speaking engagements from Firebase or fallback data
     loadSpeakingEngagements();
+    
+    // Handle hash fragment changes (when clicking links with hash after page load)
+    function handleHashChange() {
+        const hash = window.location.hash;
+        if (hash) {
+            const sectionId = hash.substring(1); // Remove the #
+            // Store in sessionStorage for back button support
+            if (separateSections.includes(sectionId) || landingPageSections.includes(sectionId)) {
+                sessionStorage.setItem('lastSection', sectionId);
+            }
+            if (landingPageSections.includes(sectionId)) {
+                // Scroll to section within landing page
+                scrollToLandingSection(sectionId);
+            } else if (separateSections.includes(sectionId)) {
+                // Switch to separate section
+                switchToSeparateSection(sectionId);
+            }
+        }
+    }
+    
+    // Listen for hash changes (when clicking links with hash after page has loaded)
+    window.addEventListener('hashchange', () => {
+        handleHashChange();
+    });
 });
 
 // Function to render speaking engagements
@@ -453,6 +569,19 @@ function renderSpeakingEngagements(speakingData) {
                </p>`
             : '';
 
+        // Check if description exists to show "Read more" button
+        const hasDescription = item.description && item.description.trim().length > 0;
+        const itemId = item.id || 'fallback_' + Math.random().toString(36).substr(2, 9);
+        const readMoreText = typeof getTranslation === 'function' ? getTranslation('speaking-read-more') : 'Read More →';
+        const readMoreButton = hasDescription 
+            ? `<a href="speaking-detail.html?id=${itemId}" class="read-more-speaking" data-i18n="speaking-read-more">${readMoreText}</a>`
+            : '';
+
+        // Show short description on main page if available
+        const shortDescHTML = item.shortDescription && item.shortDescription.trim().length > 0
+            ? `<p class="speaking-short-description">${item.shortDescription}</p>`
+            : '';
+
         speakingItem.innerHTML = `
             <div class="speaking-image">
                 <img src="${item.image}" alt="${item.title}">
@@ -461,7 +590,8 @@ function renderSpeakingEngagements(speakingData) {
                 <h2>${item.title}</h2>
                 <p class="speaking-location">${item.location}</p>
                 <p class="speaking-date"><span data-i18n="speaking-date-label">${dateLabel}</span> ${item.date}</p>
-                <p class="speaking-description">${item.description}</p>
+                ${shortDescHTML}
+                ${readMoreButton}
                 ${linksHTML}
             </div>
         `;

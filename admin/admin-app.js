@@ -291,14 +291,16 @@ function getFormData(category) {
       const speakingTitle = document.getElementById('speakingTitle').value.trim();
       const location = document.getElementById('speakingLocation').value.trim();
       const date = document.getElementById('speakingDate').value.trim();
+      const speakingShortDesc = document.getElementById('speakingShortDescription').value.trim();
       const speakingDesc = document.getElementById('speakingDescription').value.trim();
       if (!speakingTitle || !location || !date || !speakingDesc) {
-        showAlert('speakingFormAlert', 'Title, Location, Date, and Description are required!', 'error');
+        showAlert('speakingFormAlert', 'Title, Location, Date, and Full Description are required!', 'error');
         return null;
       }
       data.title = speakingTitle;
       data.location = location;
       data.date = date;
+      data.shortDescription = speakingShortDesc;
       data.description = speakingDesc;
       data.image = document.getElementById('speakingImage').value.trim();
       
@@ -614,7 +616,11 @@ function generateInlineEditForm(category, itemId, item) {
           <input type="text" id="edit-date-${escapedItemId}" class="edit-field" placeholder="Date" value="${(item.date || '').replace(/"/g, '&quot;')}">
         </div>
         <div class="form-group">
-          <label>Description <span style="color: red;">*</span></label>
+          <label>Short Description (for main page)</label>
+          <textarea id="edit-short-description-${escapedItemId}" class="edit-field" placeholder="Brief description shown on the main page" rows="3">${(item.shortDescription || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Full Description (for Read More page) <span style="color: red;">*</span></label>
           <div class="editor-toolbar">
             <button type="button" class="editor-btn" onclick="formatTextInline('bold', 'edit-description-${escapedItemId}')" title="Bold"><strong>B</strong></button>
             <button type="button" class="editor-btn" onclick="formatTextInline('italic', 'edit-description-${escapedItemId}')" title="Italic"><em>I</em></button>
@@ -790,6 +796,8 @@ function fillInlineEditForm(category, itemId, item) {
   } else if (category === 'speaking') {
     document.getElementById(`edit-location-${itemId}`).value = item.location || '';
     document.getElementById(`edit-date-${itemId}`).value = item.date || '';
+    const shortDescField = document.getElementById(`edit-short-description-${itemId}`);
+    if (shortDescField) shortDescField.value = item.shortDescription || '';
     document.getElementById(`edit-description-${itemId}`).value = item.description || '';
     document.getElementById(`edit-image-${itemId}`).value = item.image || '';
     const langSelect = document.getElementById(`edit-language-${itemId}`);
@@ -858,6 +866,7 @@ window.saveInlineEdit = async function(category, itemId) {
         title: document.getElementById(`edit-title-${itemId}`).value.trim(),
         location: document.getElementById(`edit-location-${itemId}`).value.trim(),
         date: document.getElementById(`edit-date-${itemId}`).value.trim(),
+        shortDescription: document.getElementById(`edit-short-description-${itemId}`).value.trim(),
         description: document.getElementById(`edit-description-${itemId}`).value.trim(),
         image: document.getElementById(`edit-image-${itemId}`).value.trim(),
         links: links,
@@ -956,6 +965,7 @@ function fillForm(category, item) {
       document.getElementById('speakingTitle').value = item.title || '';
       document.getElementById('speakingLocation').value = item.location || '';
       document.getElementById('speakingDate').value = item.date || '';
+      document.getElementById('speakingShortDescription').value = item.shortDescription || '';
       document.getElementById('speakingDescription').value = item.description || '';
       document.getElementById('speakingImage').value = item.image || '';
       document.getElementById('speakingLanguage').value = item.language || 'en';
@@ -1253,7 +1263,9 @@ async function handleDocxUpload(event, category) {
     markdown = markdown.trim();
     
     // Set content in textarea
-    const contentField = document.getElementById(category + 'Content');
+    // For speaking category, use 'speakingDescription' instead of 'speakingContent'
+    const fieldName = category === 'speaking' ? 'speakingDescription' : (category + 'Content');
+    const contentField = document.getElementById(fieldName);
     if (contentField) {
       const existingContent = contentField.value.trim();
       if (existingContent) {

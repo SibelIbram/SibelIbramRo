@@ -1,0 +1,6 @@
+extract-docx.html
+extract-docx.js
+extract-legal-docx.js
+/node_modules
+package.json
+package-lock.json

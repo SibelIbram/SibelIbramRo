@@ -319,7 +319,7 @@ async function loadTrainings() {
             <h2>${item.title || 'Training'}</h2>
             ${dateStr ? `<p class="training-date" style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">${dateStr}</p>` : ''}
             <p>${item.description || ''}</p>
-            ${item.content ? `<a href="training-detail.html?id=${doc.id}" class="btn-primary" data-i18n="trainings-read-more">Read More →</a>` : ''}
+            ${item.content ? `<a href="training-detail.html?id=${doc.id}" class="btn-primary" data-i18n="trainings-read-more">${typeof getTranslation === 'function' ? getTranslation('trainings-read-more') : 'Read More →'}</a>` : ''}
           </div>
         </div>
       `;
@@ -429,6 +429,18 @@ async function loadSpeaking() {
         linksHTML += '</p>';
       }
       
+      // Check if description exists to show "Read more" button
+      const hasDescription = item.description && item.description.trim().length > 0;
+      const readMoreText = typeof getTranslation === 'function' ? getTranslation('speaking-read-more') : 'Read More →';
+      const readMoreButton = hasDescription 
+        ? `<a href="speaking-detail.html?id=${doc.id}" class="read-more-speaking" data-i18n="speaking-read-more">${readMoreText}</a>`
+        : '';
+      
+      // Show short description on main page if available
+      const shortDescHTML = item.shortDescription && item.shortDescription.trim().length > 0
+        ? `<p class="speaking-short-description">${item.shortDescription}</p>`
+        : '';
+      
       html += `
         <div class="speaking-item">
           <div class="speaking-image">
@@ -438,7 +450,8 @@ async function loadSpeaking() {
             <h2>${item.title || 'Event'}</h2>
             <p class="speaking-location">${item.location || ''}</p>
             <p class="speaking-date"><span data-i18n="speaking-date-label">${dateLabel}</span> ${item.date || ''}</p>
-            <div class="speaking-description">${formatMarkdownContent(item.description || '')}</div>
+            ${shortDescHTML}
+            ${readMoreButton}
             ${linksHTML}
           </div>
         </div>
@@ -519,7 +532,7 @@ async function loadPublications() {
     snapshot.forEach(doc => {
       const item = doc.data();
       console.log('Loading publication:', item.title);
-      const readMoreLabel = document.querySelector('[data-i18n="publications-read-more"]')?.textContent || 'Read More →';
+      const readMoreLabel = typeof getTranslation === 'function' ? getTranslation('publications-read-more') : (document.querySelector('[data-i18n="publications-read-more"]')?.textContent || 'Read More →');
       
       // Format date
       let dateStr = '';
@@ -637,7 +650,7 @@ function loadTrainingsDemo() {
             <h2>${item.title || 'Training'}</h2>
             ${dateStr ? `<p class="training-date" style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">${dateStr}</p>` : ''}
             <p>${item.description || ''}</p>
-            ${item.content ? `<a href="training-detail.html?id=${item.id}" class="btn-primary" data-i18n="trainings-read-more">Read More →</a>` : ''}
+            ${item.content ? `<a href="training-detail.html?id=${item.id}" class="btn-primary" data-i18n="trainings-read-more">${typeof getTranslation === 'function' ? getTranslation('trainings-read-more') : 'Read More →'}</a>` : ''}
           </div>
         </div>
       `;
@@ -730,6 +743,18 @@ function loadSpeakingDemo() {
         linksHTML += '</p>';
       }
       
+      // Check if description exists to show "Read more" button
+      const hasDescription = item.description && item.description.trim().length > 0;
+      const readMoreText = typeof getTranslation === 'function' ? getTranslation('speaking-read-more') : 'Read More →';
+      const readMoreButton = hasDescription 
+        ? `<a href="speaking-detail.html?id=${item.id}" class="read-more-speaking" data-i18n="speaking-read-more">${readMoreText}</a>`
+        : '';
+      
+      // Show short description on main page if available
+      const shortDescHTML = item.shortDescription && item.shortDescription.trim().length > 0
+        ? `<p class="speaking-short-description">${item.shortDescription}</p>`
+        : '';
+      
       html += `
         <div class="speaking-item">
           <div class="speaking-image">
@@ -739,7 +764,8 @@ function loadSpeakingDemo() {
             <h2>${item.title || 'Event'}</h2>
             <p class="speaking-location">${item.location || ''}</p>
             <p class="speaking-date"><span data-i18n="speaking-date-label">${dateLabel}</span> ${item.date || ''}</p>
-            <div class="speaking-description">${formatMarkdownContent(item.description || '')}</div>
+            ${shortDescHTML}
+            ${readMoreButton}
             ${linksHTML}
           </div>
         </div>
@@ -803,7 +829,7 @@ function loadPublicationsDemo() {
     let html = '';
     publishedItems.forEach(item => {
       console.log('Loading publication:', item.title);
-      const readMoreLabel = document.querySelector('[data-i18n="publications-read-more"]')?.textContent || 'Read More →';
+      const readMoreLabel = typeof getTranslation === 'function' ? getTranslation('publications-read-more') : (document.querySelector('[data-i18n="publications-read-more"]')?.textContent || 'Read More →');
       
       // Format date
       let dateStr = '';
