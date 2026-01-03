@@ -4,3 +4,8 @@ extract-legal-docx.js
 /node_modules
 package.json
 package-lock.json
+PROJECT_REQUIREMENTS_TEMPLATE.md
+MOBILE_CSS_GUIDE.md
+MOBILE_TESTING_GUIDE.md
+CUSTOMER_CHANGELOG_TODAY.md
+PRODUCTION_CHECK_TODAY.md

@@ -60,14 +60,14 @@ const translations = {
         'footer-legal': 'Legal',
         'footer-privacy': 'Privacy Policy',
         'footer-terms': 'Terms of Service',
-        'footer-copyright': '© 2025 Sibel Ibram. All rights reserved.'
+        'footer-copyright': '© 2026 Sibel Ibram. All rights reserved.'
     },
     ro: {
         // Navigation
         'nav-about': 'Despre mine',
         'nav-speaking': 'Prezentări',
         'nav-testimonials': 'Testimoniale',
-        'nav-trainings': 'Formări',
+        'nav-trainings': 'Training',
         'nav-publications': 'Publicații',
         'nav-contact': 'Contact',
         // About Me
@@ -98,10 +98,10 @@ const translations = {
         'speaking-more-info': 'Mai multe informații în linkurile de mai jos:',
         'speaking-read-more': 'Citește mai mult →',
         // Trainings
-        'trainings-title': 'Formări',
+        'trainings-title': 'Training',
         'trainings-learn-more': 'Află mai mult',
         'trainings-read-more': 'Citește mai mult →',
-        'back-to-trainings': '← Înapoi la Formări',
+        'back-to-trainings': '← Înapoi la Training',
         // Publications
         'publications-title': 'Publicații',
         'publications-read-more': 'Citește mai mult →',
@@ -122,7 +122,7 @@ const translations = {
         'footer-legal': 'Legal',
         'footer-privacy': 'Politica de confidențialitate',
         'footer-terms': 'Termeni și condiții',
-        'footer-copyright': '© 2025 Sibel Ibram. Toate drepturile rezervate.'
+        'footer-copyright': '© 2026 Sibel Ibram. Toate drepturile rezervate.'
     }
 };
 
@@ -179,9 +179,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Store in sessionStorage for back button support
         if (separateSections.includes(sectionIdToShow) || landingPageSections.includes(sectionIdToShow)) {
             sessionStorage.setItem('lastSection', sectionIdToShow);
+            // Mark that we have an explicit hash (user navigated to a section)
+            sessionStorage.setItem('hadHash', 'true');
         }
     } else {
-        // No hash - check if we came from a detail page (back button scenario)
+        // No hash on initial load
+        // Check if we came from a detail page (back button scenario)
         const referrer = document.referrer;
         const isFromDetailPage = referrer && (
             referrer.includes('training-detail.html') || 
@@ -190,13 +193,24 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         
         if (isFromDetailPage) {
-            // Restore the last section from sessionStorage
-            const lastSection = sessionStorage.getItem('lastSection');
-            if (lastSection && (separateSections.includes(lastSection) || landingPageSections.includes(lastSection))) {
-                sectionIdToShow = lastSection;
-                // Update URL hash without triggering navigation
-                history.replaceState(null, '', `#${lastSection}`);
+            // Only restore the hash if the user had explicitly navigated to a section (had a hash)
+            const hadHash = sessionStorage.getItem('hadHash');
+            if (hadHash === 'true') {
+                // Restore the last section from sessionStorage
+                const lastSection = sessionStorage.getItem('lastSection');
+                if (lastSection && (separateSections.includes(lastSection) || landingPageSections.includes(lastSection))) {
+                    sectionIdToShow = lastSection;
+                    // Update URL hash without triggering navigation
+                    history.replaceState(null, '', `#${lastSection}`);
+                }
+            } else {
+                // User started at / (no hash), so clear lastSection to ensure clean state
+                sessionStorage.removeItem('lastSection');
             }
+        } else {
+            // User opened / directly (not from a detail page) - clear flags to ensure clean state
+            sessionStorage.removeItem('hadHash');
+            sessionStorage.removeItem('lastSection');
         }
     }
     
@@ -236,6 +250,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function scrollToLandingSection(sectionId) {
         // Store section in sessionStorage for back button support
         sessionStorage.setItem('lastSection', sectionId);
+        // Mark that user explicitly navigated (has hash)
+        sessionStorage.setItem('hadHash', 'true');
+        // Update URL hash
+        history.replaceState(null, '', `#${sectionId}`);
         
         const targetSection = document.getElementById(sectionId);
         if (targetSection) {
@@ -274,6 +292,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function switchToSeparateSection(sectionId) {
         // Store section in sessionStorage for back button support
         sessionStorage.setItem('lastSection', sectionId);
+        // Mark that user explicitly navigated (has hash)
+        sessionStorage.setItem('hadHash', 'true');
+        // Update URL hash
+        history.replaceState(null, '', `#${sectionId}`);
         
         // Hide landing page
         if (landingPage) {
@@ -523,6 +545,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Store in sessionStorage for back button support
             if (separateSections.includes(sectionId) || landingPageSections.includes(sectionId)) {
                 sessionStorage.setItem('lastSection', sectionId);
+                // Mark that user explicitly navigated (has hash)
+                sessionStorage.setItem('hadHash', 'true');
             }
             if (landingPageSections.includes(sectionId)) {
                 // Scroll to section within landing page
@@ -582,6 +606,31 @@ function renderSpeakingEngagements(speakingData) {
             ? `<p class="speaking-short-description">${item.shortDescription}</p>`
             : '';
 
+        // Format date as dd/mm/yyyy (European format)
+        let formattedDate = '';
+        if (item.date) {
+          if (item.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            // It's in YYYY-MM-DD format (from date input)
+            const [year, month, day] = item.date.split('-');
+            formattedDate = `${day}/${month}/${year}`;
+          } else {
+            // Try to parse as date
+            try {
+              const dateObj = new Date(item.date);
+              if (!isNaN(dateObj.getTime())) {
+                const day = String(dateObj.getDate()).padStart(2, '0');
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const year = dateObj.getFullYear();
+                formattedDate = `${day}/${month}/${year}`;
+              } else {
+                formattedDate = item.date;
+              }
+            } catch (e) {
+              formattedDate = item.date;
+            }
+          }
+        }
+
         speakingItem.innerHTML = `
             <div class="speaking-image">
                 <img src="${item.image}" alt="${item.title}">
@@ -589,7 +638,7 @@ function renderSpeakingEngagements(speakingData) {
             <div class="speaking-details">
                 <h2>${item.title}</h2>
                 <p class="speaking-location">${item.location}</p>
-                <p class="speaking-date"><span data-i18n="speaking-date-label">${dateLabel}</span> ${item.date}</p>
+                ${formattedDate ? `<p class="speaking-date"><span data-i18n="speaking-date-label">${dateLabel}</span> ${formattedDate}</p>` : ''}
                 ${shortDescHTML}
                 ${readMoreButton}
                 ${linksHTML}

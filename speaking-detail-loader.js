@@ -199,10 +199,31 @@ async function loadSpeakingDetail(speakingId) {
       document.getElementById('detailLocation').style.display = 'none';
     }
     
-    // Date
+    // Date - format as dd/mm/yyyy (European format)
     let dateStr = '';
     if (speaking.date) {
-      dateStr = speaking.date;
+      // Format date as dd/mm/yyyy
+      if (speaking.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        // It's in YYYY-MM-DD format (from date input)
+        const [year, month, day] = speaking.date.split('-');
+        dateStr = `${day}/${month}/${year}`;
+      } else {
+        // Try to parse as date
+        try {
+          const dateObj = new Date(speaking.date);
+          if (!isNaN(dateObj.getTime())) {
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const year = dateObj.getFullYear();
+            dateStr = `${day}/${month}/${year}`;
+          } else {
+            // If parsing fails, use original value (for old string dates)
+            dateStr = speaking.date;
+          }
+        } catch (e) {
+          dateStr = speaking.date;
+        }
+      }
     }
     
     if (dateStr) {

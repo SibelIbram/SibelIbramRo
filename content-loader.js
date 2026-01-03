@@ -13,6 +13,33 @@ const PUBLICATIONS_COLLECTION_NAME = typeof PUBLICATIONS_COLLECTION !== 'undefin
 
 let contentLoaded = false;
 
+// Format date as dd/mm/yyyy (European format)
+function formatDateEuropean(dateValue) {
+  if (!dateValue) return '';
+  
+  // If it's already in YYYY-MM-DD format (from date input)
+  if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [year, month, day] = dateValue.split('-');
+    return `${day}/${month}/${year}`;
+  }
+  
+  // Try to parse as date
+  try {
+    const dateObj = new Date(dateValue);
+    if (!isNaN(dateObj.getTime())) {
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const year = dateObj.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+  } catch (e) {
+    // If parsing fails, return original value (for old string dates that will be replaced)
+    return dateValue;
+  }
+  
+  return dateValue;
+}
+
 // Markdown to HTML renderer
 function formatMarkdownContent(content) {
   if (!content) return '';
@@ -441,6 +468,12 @@ async function loadSpeaking() {
         ? `<p class="speaking-short-description">${item.shortDescription}</p>`
         : '';
       
+      // Format date as dd/mm/yyyy
+      let formattedDate = '';
+      if (item.date) {
+        formattedDate = formatDateEuropean(item.date);
+      }
+      
       html += `
         <div class="speaking-item">
           <div class="speaking-image">
@@ -449,7 +482,7 @@ async function loadSpeaking() {
           <div class="speaking-details">
             <h2>${item.title || 'Event'}</h2>
             <p class="speaking-location">${item.location || ''}</p>
-            <p class="speaking-date"><span data-i18n="speaking-date-label">${dateLabel}</span> ${item.date || ''}</p>
+            ${formattedDate ? `<p class="speaking-date"><span data-i18n="speaking-date-label">${dateLabel}</span> ${formattedDate}</p>` : ''}
             ${shortDescHTML}
             ${readMoreButton}
             ${linksHTML}
@@ -755,6 +788,12 @@ function loadSpeakingDemo() {
         ? `<p class="speaking-short-description">${item.shortDescription}</p>`
         : '';
       
+      // Format date as dd/mm/yyyy
+      let formattedDate = '';
+      if (item.date) {
+        formattedDate = formatDateEuropean(item.date);
+      }
+      
       html += `
         <div class="speaking-item">
           <div class="speaking-image">
@@ -763,7 +802,7 @@ function loadSpeakingDemo() {
           <div class="speaking-details">
             <h2>${item.title || 'Event'}</h2>
             <p class="speaking-location">${item.location || ''}</p>
-            <p class="speaking-date"><span data-i18n="speaking-date-label">${dateLabel}</span> ${item.date || ''}</p>
+            ${formattedDate ? `<p class="speaking-date"><span data-i18n="speaking-date-label">${dateLabel}</span> ${formattedDate}</p>` : ''}
             ${shortDescHTML}
             ${readMoreButton}
             ${linksHTML}

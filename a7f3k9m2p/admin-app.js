@@ -290,7 +290,7 @@ function getFormData(category) {
     case 'speaking':
       const speakingTitle = document.getElementById('speakingTitle').value.trim();
       const location = document.getElementById('speakingLocation').value.trim();
-      const date = document.getElementById('speakingDate').value.trim();
+      const date = document.getElementById('speakingDate').value; // Date input returns YYYY-MM-DD format
       const speakingShortDesc = document.getElementById('speakingShortDescription').value.trim();
       const speakingDesc = document.getElementById('speakingDescription').value.trim();
       if (!speakingTitle || !location || !date || !speakingDesc) {
@@ -299,7 +299,7 @@ function getFormData(category) {
       }
       data.title = speakingTitle;
       data.location = location;
-      data.date = date;
+      data.date = date; // Store as YYYY-MM-DD format
       data.shortDescription = speakingShortDesc;
       data.description = speakingDesc;
       data.image = document.getElementById('speakingImage').value.trim();
@@ -613,7 +613,7 @@ function generateInlineEditForm(category, itemId, item) {
         </div>
         <div class="form-group">
           <label>Date</label>
-          <input type="text" id="edit-date-${escapedItemId}" class="edit-field" placeholder="Date" value="${(item.date || '').replace(/"/g, '&quot;')}">
+          <input type="date" id="edit-date-${escapedItemId}" class="edit-field" value="${item.date && item.date.match(/^\d{4}-\d{2}-\d{2}$/) ? item.date : (() => { const today = new Date(); return today.toISOString().split('T')[0]; })()}">
         </div>
         <div class="form-group">
           <label>Short Description (for main page)</label>
@@ -795,7 +795,23 @@ function fillInlineEditForm(category, itemId, item) {
     if (langSelect) langSelect.value = item.language || 'en';
   } else if (category === 'speaking') {
     document.getElementById(`edit-location-${itemId}`).value = item.location || '';
-    document.getElementById(`edit-date-${itemId}`).value = item.date || '';
+    // Handle date: if it's a string (old format), use default date (today), otherwise use the date value
+    let speakingEditDateValue = '';
+    if (item.date) {
+      // Check if it's already in YYYY-MM-DD format (date input format)
+      if (item.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        speakingEditDateValue = item.date;
+      } else {
+        // It's an old string date, use default (today's date)
+        const today = new Date();
+        speakingEditDateValue = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+      }
+    } else {
+      // No date, use default (today's date)
+      const today = new Date();
+      speakingEditDateValue = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    }
+    document.getElementById(`edit-date-${itemId}`).value = speakingEditDateValue;
     const shortDescField = document.getElementById(`edit-short-description-${itemId}`);
     if (shortDescField) shortDescField.value = item.shortDescription || '';
     document.getElementById(`edit-description-${itemId}`).value = item.description || '';
@@ -865,7 +881,7 @@ window.saveInlineEdit = async function(category, itemId) {
       itemData = {
         title: document.getElementById(`edit-title-${itemId}`).value.trim(),
         location: document.getElementById(`edit-location-${itemId}`).value.trim(),
-        date: document.getElementById(`edit-date-${itemId}`).value.trim(),
+        date: document.getElementById(`edit-date-${itemId}`).value, // Date input returns YYYY-MM-DD format
         shortDescription: document.getElementById(`edit-short-description-${itemId}`).value.trim(),
         description: document.getElementById(`edit-description-${itemId}`).value.trim(),
         image: document.getElementById(`edit-image-${itemId}`).value.trim(),
@@ -964,7 +980,23 @@ function fillForm(category, item) {
     case 'speaking':
       document.getElementById('speakingTitle').value = item.title || '';
       document.getElementById('speakingLocation').value = item.location || '';
-      document.getElementById('speakingDate').value = item.date || '';
+      // Handle date: if it's a string (old format), use default date (today), otherwise use the date value
+      let speakingDateValue = '';
+      if (item.date) {
+        // Check if it's already in YYYY-MM-DD format (date input format)
+        if (item.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          speakingDateValue = item.date;
+        } else {
+          // It's an old string date, use default (today's date)
+          const today = new Date();
+          speakingDateValue = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+        }
+      } else {
+        // No date, use default (today's date)
+        const today = new Date();
+        speakingDateValue = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+      }
+      document.getElementById('speakingDate').value = speakingDateValue;
       document.getElementById('speakingShortDescription').value = item.shortDescription || '';
       document.getElementById('speakingDescription').value = item.description || '';
       document.getElementById('speakingImage').value = item.image || '';
