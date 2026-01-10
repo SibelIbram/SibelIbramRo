@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <!-- Homepage -->
+  <url>
+    <loc>https://sibelibram.ro/</loc>
+    <lastmod>2025-01-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sibelibram.ro/" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://sibelibram.ro/" />
+  </url>
+  
+  <!-- Main sections with anchors (for single-page app) -->
+  <url>
+    <loc>https://sibelibram.ro/#about</loc>
+    <lastmod>2025-01-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sibelibram.ro/#about" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://sibelibram.ro/#about" />
+  </url>
+  
+  <url>
+    <loc>https://sibelibram.ro/#speaking</loc>
+    <lastmod>2025-01-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sibelibram.ro/#speaking" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://sibelibram.ro/#speaking" />
+  </url>
+  
+  <url>
+    <loc>https://sibelibram.ro/#trainings</loc>
+    <lastmod>2025-01-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sibelibram.ro/#trainings" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://sibelibram.ro/#trainings" />
+  </url>
+  
+  <url>
+    <loc>https://sibelibram.ro/#publications</loc>
+    <lastmod>2025-01-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sibelibram.ro/#publications" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://sibelibram.ro/#publications" />
+  </url>
+  
+  <url>
+    <loc>https://sibelibram.ro/#contact</loc>
+    <lastmod>2025-01-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sibelibram.ro/#contact" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://sibelibram.ro/#contact" />
+  </url>
+  
+  <!-- Legal pages -->
+  <url>
+    <loc>https://sibelibram.ro/privacy-policy.html</loc>
+    <lastmod>2025-01-30</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sibelibram.ro/privacy-policy.html" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://sibelibram.ro/privacy-policy.html" />
+  </url>
+  
+  <url>
+    <loc>https://sibelibram.ro/terms-of-service.html</loc>
+    <lastmod>2025-01-30</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sibelibram.ro/terms-of-service.html" />
+    <xhtml:link rel="alternate" hreflang="ro" href="https://sibelibram.ro/terms-of-service.html" />
+  </url>
+  
+  <!-- Note: Dynamic content URLs (training-detail.html, publication-detail.html, speaking-detail.html) 
+       should be added manually when you publish new content, or you can implement a dynamic sitemap generator.
+       
+       Example format for dynamic content:
+       
+       <url>
+         <loc>https://sibelibram.ro/training-detail.html?id=scrum-training</loc>
+         <lastmod>2025-01-30</lastmod>
+         <changefreq>monthly</changefreq>
+         <priority>0.7</priority>
+       </url>
+  -->
+  
+</urlset>

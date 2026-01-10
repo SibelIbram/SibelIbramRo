@@ -1,0 +1,9 @@
+# robots.txt for sibelibram.ro
+# This file tells search engines which pages they can crawl
+
+User-agent: *
+Allow: /
+Disallow: /a7f3k9m2p/  # Hide admin panel from search engines
+
+# Sitemap location
+Sitemap: https://sibelibram.ro/sitemap.xml
