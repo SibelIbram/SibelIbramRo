@@ -236,9 +236,17 @@ async function loadSpeakingDetail(speakingId) {
     // Image at top - full width, variable height
     if (speaking.image) {
       const imgEl = document.getElementById('detailImage');
-      imgEl.src = speaking.image;
-      imgEl.alt = speaking.title || 'Speaking Engagement';
-      imgEl.style.display = 'block';
+      const imgContainer = document.querySelector('.detail-image-container');
+      if (imgEl && imgContainer) {
+        imgEl.src = speaking.image;
+        imgEl.alt = speaking.title || 'Speaking Engagement';
+        imgEl.style.display = 'block';
+        imgEl.style.visibility = 'visible';
+        imgEl.style.opacity = '1';
+        imgContainer.style.display = 'block';
+        imgContainer.style.visibility = 'visible';
+        imgContainer.style.opacity = '1';
+      }
     }
     
     // Description - render markdown and auto-link URLs

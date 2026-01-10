@@ -64,6 +64,43 @@
             padding: 4rem;
             color: #e74c3c;
         }
+        
+        @media (max-width: 768px) {
+            .detail-container {
+                margin: 2rem auto;
+                padding: 0 1rem;
+            }
+            
+            .detail-title {
+                font-size: 1.75rem;
+            }
+            
+            .detail-content {
+                font-size: 1rem;
+                line-height: 1.8;
+            }
+            
+            .detail-description {
+                font-size: 1rem;
+            }
+            
+            .detail-image {
+                max-height: 300px;
+            }
+            
+            .back-link {
+                padding: 8px 0;
+                min-height: 44px;
+                display: inline-flex;
+                align-items: center;
+                font-size: 1rem;
+            }
+            
+            .loading,
+            .error {
+                padding: 2rem 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -75,7 +112,19 @@
                     <img src="images/MainLogo.jpg" alt="Logo" class="logo" id="logo">
                 </a>
             </div>
-            <nav class="nav-menu">
+            <button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
+                <span class="hamburger-icon">☰</span>
+            </button>
+            <nav class="nav-menu" id="nav-menu">
+                <a href="index.html#about" class="nav-btn-link" data-i18n="nav-about">About me</a>
+                <a href="index.html#speaking" class="nav-btn-link" data-i18n="nav-speaking">Speaking</a>
+                <a href="index.html#trainings" class="nav-btn-link" data-i18n="nav-trainings">Trainings</a>
+                <a href="index.html#publications" class="nav-btn-link" data-i18n="nav-publications">Publications</a>
+                <a href="index.html#contact" class="nav-btn-link" data-i18n="nav-contact">Contact</a>
+                <div class="language-switch">
+                    <button class="lang-btn active" data-lang="en">EN</button>
+                    <button class="lang-btn" data-lang="ro">RO</button>
+                </div>
             </nav>
         </div>
     </header>
@@ -112,7 +161,6 @@
                 <ul>
                     <li><a href="index.html#about" data-i18n="nav-about">About Me</a></li>
                     <li><a href="index.html#speaking" data-i18n="nav-speaking">Speaking</a></li>
-                    <li><a href="index.html#testimonials" data-i18n="nav-testimonials">Testimonials</a></li>
                     <li><a href="index.html#trainings" data-i18n="nav-trainings">Trainings</a></li>
                     <li><a href="index.html#publications" data-i18n="nav-publications">Publications</a></li>
                 </ul>

@@ -22,6 +22,7 @@ body {
     line-height: 1.6;
     color: var(--text-color);
     background-color: #fff;
+    font-size: 16px; /* Base font size for better mobile readability */
 }
 
 /* Header Styles */
@@ -74,6 +75,8 @@ body {
     transition: all 0.3s ease;
     border-bottom: 2px solid transparent;
     font-weight: 500;
+    text-decoration: none; /* For anchor tags in detail pages */
+    display: inline-block; /* For anchor tags */
 }
 
 .nav-btn:hover {
@@ -119,6 +122,31 @@ body {
     background: rgba(255, 255, 255, 0.3);
     color: #fff;
     border-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Mobile Menu Toggle (Hamburger) - Hidden on desktop */
+.mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    min-height: 44px;
+    min-width: 44px;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+}
+
+.mobile-menu-toggle:hover {
+    opacity: 0.8;
+}
+
+.hamburger-icon {
+    display: block;
+    line-height: 1;
 }
 
 /* Main Content */
@@ -393,6 +421,10 @@ body {
     flex-direction: column;
     gap: 3rem;
     margin-top: 2rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .speaking-item {
@@ -403,6 +435,7 @@ body {
     border-radius: 10px;
     overflow: hidden;
     box-shadow: var(--shadow);
+    box-sizing: border-box; /* Ensure proper sizing */
 }
 
 .speaking-image {
@@ -411,6 +444,7 @@ body {
     overflow: hidden;
     display: flex;
     align-items: flex-start;
+    box-sizing: border-box; /* Ensure proper sizing */
 }
 
 .speaking-image img {
@@ -418,6 +452,7 @@ body {
     height: auto;
     object-fit: contain;
     display: block;
+    max-width: 100%; /* Prevent overflow */
 }
 
 .speaking-details {
@@ -425,12 +460,19 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    box-sizing: border-box; /* Ensure proper sizing */
+    width: 100%; /* Ensure full width */
+    overflow: hidden; /* Prevent overflow */
+    word-wrap: break-word; /* Break long words */
+    word-break: break-word; /* Break long words */
 }
 
 .speaking-details h2 {
     font-size: 2rem;
     margin-bottom: 1rem;
     color: var(--primary-color);
+    word-wrap: break-word; /* Break long words */
+    overflow-wrap: break-word; /* Break long words */
 }
 
 .speaking-location,
@@ -438,6 +480,8 @@ body {
     color: var(--text-light);
     margin-bottom: 0.5rem;
     font-size: 1.1rem;
+    word-wrap: break-word; /* Break long words */
+    overflow-wrap: break-word; /* Break long words */
 }
 
 .speaking-description {
@@ -590,11 +634,19 @@ body {
     display: inline-block;
     text-align: center;
     transition: background 0.3s ease, transform 0.2s ease;
+    min-height: 44px; /* Touch target size */
 }
 
 .btn-primary:hover {
     background: #2980b9;
     transform: translateY(-2px);
+}
+
+.read-more,
+.read-more-speaking {
+    min-height: 44px; /* Touch target size */
+    display: inline-flex;
+    align-items: center;
 }
 
 /* Footer */
@@ -646,7 +698,29 @@ body {
     font-size: 0.9rem;
 }
 
-/* Responsive Design */
+/* Loading States */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-message {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-light);
+    font-size: 1rem;
+}
+
+/* Responsive Design - Tablet */
 @media (max-width: 1024px) {
     .about-container {
         grid-template-columns: 1fr;
@@ -666,11 +740,21 @@ body {
     }
 
     .speaking-item {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Single column layout */
+        gap: 2rem; /* Reduce gap slightly on tablet */
     }
 
     .speaking-image {
         height: auto;
+        display: block; /* Override flex from base styles */
+        width: 100%;
+    }
+
+    .speaking-image img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        max-height: 350px; /* Limit height on tablet */
     }
 
     .contact-container {
@@ -682,37 +766,709 @@ body {
     }
 }
 
+/* Responsive Design - Mobile */
 @media (max-width: 768px) {
+    /* Typography - Priority 1: Readability */
+    body {
+        font-size: 16px;
+        line-height: 1.7;
+    }
+    
+    h1 { 
+        font-size: 2rem; 
+    }
+    
+    h2 { 
+        font-size: 1.75rem; 
+    }
+    
+    h3 { 
+        font-size: 1.5rem; 
+    }
+    
+    p {
+        font-size: 16px;
+        margin-bottom: 1.25rem;
+    }
+
+    /* Header - Priority 1: Space Optimization */
+    .header {
+        padding: 1rem 0;
+        min-height: 60px;
+    }
+
     .header-container {
-        flex-direction: column;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 1rem;
+        flex-wrap: nowrap;
         gap: 1rem;
     }
 
-    .nav-menu {
-        justify-content: center;
-        width: 100%;
+    .logo {
+        max-height: 50px;
+        max-width: 200px;
     }
 
+    /* Mobile Menu Toggle - Show on mobile */
+    .mobile-menu-toggle {
+        display: flex;
+        order: 2;
+    }
+
+    /* Navigation Menu - Priority 1: Hamburger Menu */
+    .nav-menu {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        background: #061572;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease, padding 0.3s ease;
+        z-index: 999;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .nav-menu.mobile-open {
+        max-height: 500px;
+        padding: 0; /* No container padding - padding on individual items only */
+    }
+
+    .nav-btn,
+    .nav-btn-link {
+        width: 100%;
+        text-align: left;
+        padding: 1rem; /* Consistent padding with main page */
+        font-size: 1.1rem;
+        min-height: 48px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin: 0;
+        text-decoration: none;
+        display: block;
+        background: none;
+        border-left: none;
+        border-right: none;
+        border-top: none;
+        color: rgba(255, 255, 255, 0.9);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        box-sizing: border-box;
+        line-height: 1.5;
+    }
+
+    .nav-btn:last-of-type,
+    .nav-btn-link:last-of-type {
+        border-bottom: none;
+    }
+    
+    .nav-btn:hover,
+    .nav-btn-link:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Language switch - consistent spacing with main page */
+    .nav-menu .language-switch {
+        margin-left: 0;
+        padding: 1rem; /* Same padding as nav items for consistency */
+        margin-top: 0;
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.3);
+        width: 100%;
+        justify-content: center;
+        border-bottom: none;
+    }
+
+    .lang-btn {
+        min-height: 44px;
+        padding: 0.6rem 1rem;
+        font-size: 1rem;
+        flex: 0 0 auto;
+    }
+
+    /* Section Titles */
     .section-title {
         font-size: 2rem;
+        margin-bottom: 2rem;
     }
 
     .section-container {
         padding: 2rem 1rem;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow-x: hidden; /* Prevent horizontal scroll */
     }
 
+    .landing-section#speaking .section-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow-x: hidden;
+    }
+
+    .speaking-list {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        padding: 0;
+        margin-left: 0;
+        margin-right: 0;
+        overflow-x: hidden;
+    }
+
+    /* About Section - Priority 2: Image Optimization */
     .about-container {
         padding: 2rem 1rem;
+        gap: 2rem;
+    }
+
+    .about-image-container {
+        height: auto;
+        max-height: 600px; /* Increased by 50% from 400px */
+        margin-top: 2rem;
+    }
+
+    .about-image {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+
+    .about-text {
+        font-size: 1rem;
+        line-height: 1.8;
+    }
+
+    .about-text p {
+        margin-bottom: 1rem;
+    }
+
+    /* Spacing Adjustments - Priority 2 */
+    .speaking-list,
+    .publications-list {
+        gap: 2rem;
+    }
+
+    .speaking-item {
+        grid-template-columns: 1fr !important; /* Force single column on mobile */
+        gap: 1rem; /* Tighter spacing */
+        padding: 0;
+        display: grid; /* Ensure grid is active */
+        overflow: hidden; /* Prevent overflow */
+        width: 100%; /* Full width */
+        max-width: 100%; /* Prevent overflow */
+        box-sizing: border-box; /* Include padding in width */
+    }
+
+    .publication-card {
+        gap: 1.5rem;
+    }
+
+    .speaking-image {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        min-height: 150px !important; /* Ensure container has height */
+        max-height: none !important;
+        overflow: hidden !important;
+        display: block !important; /* Override flex display from base styles */
+        align-items: unset !important;
+        box-sizing: border-box !important;
+        order: -1 !important; /* Show image first on mobile */
+        visibility: visible !important;
+        opacity: 1 !important;
+        background-color: #f5f5f5; /* Light background in case image doesn't load */
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .speaking-image img {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: 280px !important; /* Reasonable height for mobile */
+        object-fit: contain !important; /* Preserve full image without cropping */
+        object-position: center !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        margin: 0 auto; /* Center image */
+    }
+
+    .speaking-details {
+        padding: 1.25rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
+        overflow: hidden; /* Prevent text overflow */
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .speaking-details h2 {
+        font-size: 1.3rem !important; /* Smaller on mobile */
+        margin-bottom: 0.75rem;
+        line-height: 1.3;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+    }
+
+    .speaking-location,
+    .speaking-date {
+        font-size: 0.9rem !important; /* Smaller on mobile */
+        margin-bottom: 0.5rem;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+    }
+
+    .speaking-short-description {
+        font-size: 0.9rem !important;
+        line-height: 1.5 !important;
+        margin-top: 0.75rem !important;
+        margin-bottom: 0.75rem !important;
+        padding: 0 !important;
+        word-wrap: break-word !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    .speaking-links {
+        font-size: 0.85rem !important;
+        margin-top: 1rem !important;
+        padding: 0 !important;
+        word-wrap: break-word !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    .speaking-links a {
+        display: inline-block !important;
+        max-width: 100% !important;
+        word-wrap: break-word !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        box-sizing: border-box !important;
+        line-height: 1.5 !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .read-more-speaking {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
+        font-size: 0.95rem !important;
+        padding: 0.75rem 1.25rem !important;
+        background-color: var(--secondary-color) !important;
+        color: #fff !important;
+        border-radius: 5px !important;
+        text-align: center !important;
+        width: auto !important;
+        max-width: 100% !important;
+        min-width: 120px !important;
+        min-height: 44px !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        box-sizing: border-box !important;
+        text-decoration: none !important;
+        font-weight: 600 !important;
+        line-height: 1.5 !important;
+    }
+
+    .read-more-speaking:hover {
+        background-color: var(--accent-color) !important;
+        color: #fff !important;
+    }
+
+    .publication-content {
+        padding: 1.5rem;
+    }
+
+    .publication-image {
+        min-height: 200px;
+        max-height: 250px;
+    }
+
+    .publication-image img {
+        max-height: 250px;
+        object-fit: cover;
+    }
+
+    /* Card Layouts - Priority 2 */
+    .training-card {
+        margin-bottom: 0;
+    }
+
+    .training-content {
+        padding: 1.5rem;
+    }
+
+    .training-image {
+        height: 250px;
     }
 
     .trainings-grid,
     .testimonials-grid {
         grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    /* Buttons & Links - Priority 1: Touch Targets */
+    .btn-primary,
+    .read-more-speaking,
+    .read-more {
+        padding: 12px 24px;
+        font-size: 16px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .speaking-links a,
+    .footer-section a {
+        display: inline-block;
+        padding: 8px 0;
+        min-height: 44px;
+        line-height: 1.5;
+    }
+
+    /* Contact Section */
+    .contact-info {
+        padding: 2rem 1.5rem;
+    }
+
+    .contact-info p {
+        font-size: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    /* Footer - Option 7: Compact Two-Row Grid */
+    .footer {
+        padding: 1.25rem 0 0.75rem; /* More compact vertical padding */
+        margin-bottom: 0;
     }
 
     .footer-container {
         grid-template-columns: 1fr;
+        text-align: left; /* Left align for better readability with headers */
+        padding: 0 1rem;
+        gap: 1rem; /* Reduced gap between sections */
+    }
+
+    .footer-section {
+        font-size: 0.85rem;
+    }
+
+    .footer-section h3 {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+        margin-right: 0.5rem;
+        vertical-align: top;
+        min-width: 60px; /* Ensure headers align nicely */
+        font-weight: 600;
+    }
+
+    /* Make footer lists display inline/horizontal */
+    .footer-section:not(:last-child) ul {
+        display: inline-block;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        vertical-align: top;
+        max-width: calc(100% - 70px); /* Allow space for header */
+    }
+
+    .footer-section ul li {
+        display: inline-block;
+        margin: 0;
+        margin-right: 0.25rem;
+        margin-bottom: 0;
+        vertical-align: middle;
+    }
+
+    /* Add separator between links (bullet point style) */
+    .footer-section ul li:not(:last-child)::after {
+        content: ' • ';
+        color: rgba(255, 255, 255, 0.5);
+        margin-left: 0.25rem;
+        margin-right: 0.25rem;
+    }
+
+    .footer-section a {
+        font-size: 0.85rem;
+        padding: 4px 0;
+        min-height: 36px; /* Slightly reduced but still touch-friendly */
+        display: inline-block;
+        line-height: 1.4;
+        color: rgba(255, 255, 255, 0.8);
+        transition: color 0.3s ease;
+    }
+
+    .footer-section a:hover {
+        color: #fff;
+    }
+
+    /* Copyright section - keep it on its own line */
+    .footer-section:last-child {
         text-align: center;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .footer-section:last-child p {
+        font-size: 0.8rem;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Special handling for sections with fewer links (Connect & Legal) */
+    .footer-section:nth-of-type(2) ul li::after, /* Connect section */
+    .footer-section:nth-of-type(3) ul li::after { /* Legal section */
+        margin-left: 0.5rem;
+        margin-right: 0.5rem;
+    }
+
+    /* Testimonials */
+    .testimonial-card {
+        padding: 1.5rem;
+    }
+
+    /* Scroll Behavior - Ensure smooth scrolling works */
+    html {
+        scroll-behavior: smooth;
+    }
+    
+    /* Ensure sticky header doesn't cover content when scrolling */
+    .landing-section:first-child {
+        padding-top: 1rem;
+    }
+}
+
+/* Extra Small Mobile Devices */
+@media (max-width: 480px) {
+    .header-container {
+        padding: 0 0.75rem;
+    }
+
+    .logo {
+        max-height: 45px;
+        max-width: 150px;
+    }
+
+    .section-container {
+        padding: 1.5rem 0.75rem;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow-x: hidden; /* Prevent horizontal scroll */
+    }
+
+    .landing-section#speaking .section-container {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow-x: hidden;
+    }
+
+    .speaking-list {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        padding: 0;
+        margin-left: 0;
+        margin-right: 0;
+        overflow-x: hidden;
+    }
+
+    .about-container {
+        padding: 1.5rem 0.75rem;
+    }
+
+    .about-image-container {
+        max-height: 450px; /* Increased by 50% from 300px */
+        margin-top: 1rem;
+    }
+
+    .section-title {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .speaking-item {
+        grid-template-columns: 1fr !important; /* Force single column on very small screens */
+        gap: 1rem !important;
+        display: grid !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 0 !important;
+    }
+
+    .speaking-image {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: none;
+        display: block !important;
+        box-sizing: border-box !important;
+        overflow: hidden;
+        order: -1; /* Image first */
+    }
+
+    .speaking-image img {
+        max-height: 240px !important; /* Smaller on very small screens */
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        object-fit: contain !important;
+        display: block !important;
+        margin: 0 auto;
+    }
+
+    .speaking-details {
+        padding: 1rem !important; /* Less padding on very small screens */
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        word-wrap: break-word !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .speaking-details h2 {
+        font-size: 1.2rem !important; /* Even smaller on very small screens */
+        line-height: 1.3 !important;
+        margin-bottom: 0.5rem !important;
+        max-width: 100% !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .publication-title {
+        font-size: 1.5rem;
+    }
+
+    .speaking-location,
+    .speaking-date {
+        font-size: 0.85rem !important; /* Even smaller on very small screens */
+        margin-bottom: 0.4rem !important;
+        max-width: 100% !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .speaking-short-description {
+        font-size: 0.85rem !important; /* Smaller text on very small screens */
+        line-height: 1.5 !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+        max-width: 100% !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .speaking-links {
+        font-size: 0.8rem !important;
+        max-width: 100% !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .speaking-links a {
+        display: inline-block;
+        max-width: 100% !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .read-more-speaking {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        margin-top: 0.75rem !important;
+        margin-bottom: 0.75rem !important;
+        font-size: 0.9rem !important;
+        padding: 0.65rem 1rem !important;
+        background-color: var(--secondary-color) !important;
+        color: #fff !important;
+        border-radius: 5px;
+        text-align: center;
+        width: auto;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .btn-primary,
+    .read-more-speaking,
+    .read-more {
+        padding: 14px 20px;
+        font-size: 16px;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Footer - Even more compact on very small screens */
+    .footer {
+        padding: 1rem 0 0.5rem;
+    }
+
+    .footer-container {
+        padding: 0 0.75rem;
+        gap: 0.75rem;
+    }
+
+    .footer-section {
+        font-size: 0.8rem;
+    }
+
+    .footer-section h3 {
+        font-size: 0.9rem;
+        min-width: 55px; /* Slightly smaller on very small screens */
+        margin-right: 0.4rem;
+    }
+
+    .footer-section a {
+        font-size: 0.8rem;
+        min-height: 32px; /* Still touch-friendly but more compact */
+    }
+
+    /* Allow wrapping on very small screens for Quick Links */
+    .footer-section:first-of-type ul li {
+        white-space: normal; /* Allow wrapping if needed */
+        margin-bottom: 0.15rem;
+    }
+
+    .footer-section:last-child p {
+        font-size: 0.75rem;
     }
 }
 

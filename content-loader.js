@@ -224,6 +224,8 @@ document.addEventListener('DOMContentLoaded', () => {
       loadPublicationsDemo();
     } else {
       console.log('Firebase mode: Loading content from Firebase');
+      // Show loading states
+      showLoadingStates();
       // Load from Firebase
       loadTrainings();
       loadSpeaking();
@@ -231,6 +233,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 500); // Increased timeout to give Firebase more time to initialize
 });
+
+// Show loading states
+function showLoadingStates() {
+  const trainingsContainer = document.getElementById('trainings-grid');
+  if (trainingsContainer) {
+    trainingsContainer.innerHTML = '<div class="loading-message"><div class="loading-spinner"></div> Loading trainings...</div>';
+  }
+  
+  const speakingContainer = document.getElementById('speaking-list');
+  if (speakingContainer) {
+    speakingContainer.innerHTML = '<div class="loading-message"><div class="loading-spinner"></div> Loading speaking engagements...</div>';
+  }
+  
+  const publicationsContainer = document.querySelector('.publications-list');
+  if (publicationsContainer) {
+    publicationsContainer.innerHTML = '<div class="loading-message"><div class="loading-spinner"></div> Loading publications...</div>';
+  }
+}
 
 // Clear default/placeholder content
 function clearDefaultContent() {
@@ -313,7 +333,7 @@ async function loadTrainings() {
     console.log(`Found ${snapshot.size} published training(s)`);
     
     if (snapshot.empty) {
-      container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">No trainings available yet.</p>';
+      container.innerHTML = '<p class="loading-message">No trainings available yet.</p>';
       return;
     }
     
@@ -417,7 +437,7 @@ async function loadSpeaking() {
     console.log(`Found ${snapshot.size} published speaking event(s)`);
     
     if (snapshot.empty) {
-      container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">No speaking events yet.</p>';
+      container.innerHTML = '<p class="loading-message">No speaking events yet.</p>';
       return;
     }
     
@@ -557,7 +577,7 @@ async function loadPublications() {
     console.log(`Found ${snapshot.size} published publication(s)`);
     
     if (snapshot.empty) {
-      container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">No publications available yet.</p>';
+      container.innerHTML = '<p class="loading-message">No publications available yet.</p>';
       return;
     }
     
@@ -644,7 +664,7 @@ function loadTrainingsDemo() {
     console.log(`Found ${publishedItems.length} published training(s) in demo mode`);
     
     if (publishedItems.length === 0) {
-      container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">No trainings available yet. Create one in the admin panel!</p>';
+      container.innerHTML = '<p class="loading-message">No trainings available yet. Create one in the admin panel!</p>';
       return;
     }
     
@@ -731,7 +751,7 @@ function loadSpeakingDemo() {
     console.log(`Found ${publishedItems.length} published speaking event(s) in demo mode`);
     
     if (publishedItems.length === 0) {
-      container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">No speaking events yet. Create one in the admin panel!</p>';
+      container.innerHTML = '<p class="loading-message">No speaking events yet. Create one in the admin panel!</p>';
       return;
     }
     
@@ -854,7 +874,7 @@ function loadPublicationsDemo() {
     console.log(`Found ${publishedItems.length} published publication(s) in demo mode`);
     
     if (publishedItems.length === 0) {
-      container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">No publications available yet. Create one in the admin panel!</p>';
+      container.innerHTML = '<p class="loading-message">No publications available yet. Create one in the admin panel!</p>';
       return;
     }
     

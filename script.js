@@ -148,6 +148,80 @@ document.addEventListener('DOMContentLoaded', () => {
     const contentSections = document.querySelectorAll('.content-section');
     const landingPage = document.getElementById('landing-page');
     const footerLinks = document.querySelectorAll('.footer-section a[data-section]');
+    const navMenu = document.getElementById('nav-menu');
+    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+    
+    // Mobile Menu Toggle Functionality
+    if (mobileMenuToggle && navMenu) {
+        mobileMenuToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('mobile-open');
+            // Update hamburger icon (optional - can add X icon when open)
+            const icon = mobileMenuToggle.querySelector('.hamburger-icon');
+            if (icon) {
+                if (navMenu.classList.contains('mobile-open')) {
+                    icon.textContent = '✕';
+                } else {
+                    icon.textContent = '☰';
+                }
+            }
+        });
+        
+        // Close mobile menu when clicking on a nav button (main page)
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    navMenu.classList.remove('mobile-open');
+                    const icon = mobileMenuToggle.querySelector('.hamburger-icon');
+                    if (icon) {
+                        icon.textContent = '☰';
+                    }
+                }
+            });
+        });
+        
+        // Close mobile menu when clicking on nav links (detail pages)
+        // These are anchor tags that navigate to index.html#section
+        const navLinks = navMenu.querySelectorAll('a.nav-btn-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Close menu immediately
+                if (window.innerWidth <= 768) {
+                    navMenu.classList.remove('mobile-open');
+                    const icon = mobileMenuToggle.querySelector('.hamburger-icon');
+                    if (icon) {
+                        icon.textContent = '☰';
+                    }
+                }
+                // Allow default navigation behavior - don't preventDefault
+                // The link will naturally navigate to index.html#section
+            }, false); // Use capture phase false to ensure default behavior works
+        });
+        
+        // Close mobile menu when clicking outside (on body)
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && 
+                navMenu.classList.contains('mobile-open') &&
+                !navMenu.contains(e.target) &&
+                !mobileMenuToggle.contains(e.target)) {
+                navMenu.classList.remove('mobile-open');
+                const icon = mobileMenuToggle.querySelector('.hamburger-icon');
+                if (icon) {
+                    icon.textContent = '☰';
+                }
+            }
+        });
+        
+        // Close mobile menu on window resize if it becomes desktop size
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                navMenu.classList.remove('mobile-open');
+                const icon = mobileMenuToggle.querySelector('.hamburger-icon');
+                if (icon) {
+                    icon.textContent = '☰';
+                }
+            }
+        });
+    }
 
     // Sections that are part of the landing page (scrollable)
     const landingPageSections = ['about', 'speaking', 'testimonials'];
@@ -272,7 +346,8 @@ document.addEventListener('DOMContentLoaded', () => {
             updateActiveNavButton(sectionId);
 
             // Scroll to the target section
-            const headerOffset = 80; // Account for sticky header
+            // Account for sticky header - use smaller offset on mobile
+            const headerOffset = window.innerWidth <= 768 ? 60 : 80;
             const elementPosition = targetSection.getBoundingClientRect().top;
             const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -335,7 +410,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const headerOffset = 150; // Offset from top of viewport
+            // Use smaller header offset on mobile
+            const headerOffset = window.innerWidth <= 768 ? 100 : 150;
             let currentSection = null;
             let minDistance = Infinity;
 
