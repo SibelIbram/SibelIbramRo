@@ -60,7 +60,11 @@ const translations = {
         'footer-legal': 'Legal',
         'footer-privacy': 'Privacy Policy',
         'footer-terms': 'Terms of Service',
-        'footer-copyright': '© 2026 Sibel Ibram. All rights reserved.'
+        'footer-copyright': '© 2026 Sibel Ibram. All rights reserved.',
+        // Cookie Bar
+        'cookie-message': 'We use essential cookies to ensure this website works properly. No tracking cookies are used.',
+        'cookie-got-it': 'Got it',
+        'cookie-privacy-link': 'Privacy Policy'
     },
     ro: {
         // Navigation
@@ -122,7 +126,11 @@ const translations = {
         'footer-legal': 'Legal',
         'footer-privacy': 'Politica de confidențialitate',
         'footer-terms': 'Termeni și condiții',
-        'footer-copyright': '© 2026 Sibel Ibram. Toate drepturile rezervate.'
+        'footer-copyright': '© 2026 Sibel Ibram. Toate drepturile rezervate.',
+        // Cookie Bar
+        'cookie-message': 'Folosim cookie-uri esențiale pentru a ne asigura că acest site web funcționează corect. Nu folosim cookie-uri de urmărire.',
+        'cookie-got-it': 'Am înțeles',
+        'cookie-privacy-link': 'Politica de confidențialitate'
     }
 };
 
@@ -638,6 +646,49 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('hashchange', () => {
         handleHashChange();
     });
+
+    // Cookie Bar Functionality
+    const cookieBar = document.getElementById('cookie-bar');
+    const cookieAcceptBtn = document.getElementById('cookie-accept-btn');
+    const COOKIE_CONSENT_KEY = 'cookieConsentAccepted';
+
+    // Check if user has already accepted cookies
+    function hasAcceptedCookies() {
+        return localStorage.getItem(COOKIE_CONSENT_KEY) === 'true';
+    }
+
+    // Show cookie bar if user hasn't accepted
+    function showCookieBar() {
+        if (cookieBar && !hasAcceptedCookies()) {
+            cookieBar.style.display = 'flex';
+        }
+    }
+
+    // Hide cookie bar
+    function hideCookieBar() {
+        if (cookieBar) {
+            cookieBar.style.display = 'none';
+        }
+    }
+
+    // Accept cookies and hide bar
+    function acceptCookies() {
+        localStorage.setItem(COOKIE_CONSENT_KEY, 'true');
+        hideCookieBar();
+    }
+
+    // Initialize cookie bar
+    if (cookieAcceptBtn) {
+        cookieAcceptBtn.addEventListener('click', acceptCookies);
+    }
+
+    // Show cookie bar on page load if not accepted
+    if (!hasAcceptedCookies()) {
+        // Small delay to ensure smooth animation
+        setTimeout(showCookieBar, 500);
+    } else {
+        hideCookieBar();
+    }
 });
 
 // Function to render speaking engagements
