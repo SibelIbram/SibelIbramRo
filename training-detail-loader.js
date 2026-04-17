@@ -29,6 +29,13 @@ function resolveImageUrl(imageValue) {
     return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(normalizedPath)}?alt=media`;
   }
 
+  if (/^[^\/\\]+\.(jpg|jpeg|png|gif|webp|svg)$/i.test(trimmed)) {
+    const bucket = (typeof firebaseConfig !== 'undefined' && firebaseConfig.storageBucket)
+      ? firebaseConfig.storageBucket
+      : 'sibram.firebasestorage.app';
+    return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(`Resources/${trimmed}`)}?alt=media`;
+  }
+
   return trimmed;
 }
 
