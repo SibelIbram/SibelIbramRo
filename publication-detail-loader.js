@@ -2,6 +2,36 @@
 // Loads a specific publication by ID from Firebase or localStorage
 
 // Markdown to HTML renderer (same as content-loader.js)
+function resolveImageUrl(imageValue) {
+  if (!imageValue || typeof imageValue !== 'string') {
+    return '';
+  }
+
+  const trimmed = imageValue.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('blob:')
+  ) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith('/Resources/') || trimmed.startsWith('Resources/')) {
+    const normalizedPath = trimmed.replace(/^\/+/, '');
+    const bucket = (typeof firebaseConfig !== 'undefined' && firebaseConfig.storageBucket)
+      ? firebaseConfig.storageBucket
+      : 'sibram.firebasestorage.app';
+    return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(normalizedPath)}?alt=media`;
+  }
+
+  return trimmed;
+}
+
 function formatMarkdownContent(content) {
   if (!content) return '';
   
@@ -187,7 +217,7 @@ async function loadPublicationDetail(publicationId) {
     // Image
     if (publication.image) {
       const imgEl = document.getElementById('detailImage');
-      imgEl.src = publication.image;
+      imgEl.src = resolveImageUrl(publication.image);
       imgEl.alt = publication.title || 'Publication';
       imgEl.style.display = 'block';
     }

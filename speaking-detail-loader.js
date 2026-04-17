@@ -2,6 +2,36 @@
 // Loads a specific speaking engagement by ID from Firebase or localStorage
 
 // Markdown to HTML renderer (same as content-loader.js)
+function resolveImageUrl(imageValue) {
+  if (!imageValue || typeof imageValue !== 'string') {
+    return '';
+  }
+
+  const trimmed = imageValue.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('blob:')
+  ) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith('/Resources/') || trimmed.startsWith('Resources/')) {
+    const normalizedPath = trimmed.replace(/^\/+/, '');
+    const bucket = (typeof firebaseConfig !== 'undefined' && firebaseConfig.storageBucket)
+      ? firebaseConfig.storageBucket
+      : 'sibram.firebasestorage.app';
+    return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(normalizedPath)}?alt=media`;
+  }
+
+  return trimmed;
+}
+
 function formatMarkdownContent(content) {
   if (!content) return '';
   
@@ -238,7 +268,7 @@ async function loadSpeakingDetail(speakingId) {
       const imgEl = document.getElementById('detailImage');
       const imgContainer = document.querySelector('.detail-image-container');
       if (imgEl && imgContainer) {
-        imgEl.src = speaking.image;
+        imgEl.src = resolveImageUrl(speaking.image);
         imgEl.alt = speaking.title || 'Speaking Engagement';
         imgEl.style.display = 'block';
         imgEl.style.visibility = 'visible';

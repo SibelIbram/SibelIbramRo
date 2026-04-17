@@ -13,6 +13,43 @@ const PUBLICATIONS_COLLECTION_NAME = typeof PUBLICATIONS_COLLECTION !== 'undefin
 
 let contentLoaded = false;
 
+function resolveImageUrl(imageValue, fallbackImage) {
+  if (!imageValue || typeof imageValue !== 'string') {
+    return fallbackImage;
+  }
+
+  const trimmed = imageValue.trim();
+  if (!trimmed) {
+    return fallbackImage;
+  }
+
+  // Already usable URLs or inline data.
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('blob:')
+  ) {
+    return trimmed;
+  }
+
+  // Legacy values saved as Storage paths, like "/Resources/123.jpeg".
+  if (trimmed.startsWith('/Resources/') || trimmed.startsWith('Resources/')) {
+    const normalizedPath = trimmed.replace(/^\/+/, '');
+    const bucket = (typeof firebaseConfig !== 'undefined' && firebaseConfig.storageBucket)
+      ? firebaseConfig.storageBucket
+      : 'sibram.firebasestorage.app';
+    return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(normalizedPath)}?alt=media`;
+  }
+
+  // Keep local site paths if explicitly provided.
+  if (trimmed.startsWith('/') || trimmed.startsWith('./') || trimmed.startsWith('../')) {
+    return trimmed;
+  }
+
+  return trimmed;
+}
+
 // Format date as dd/mm/yyyy (European format)
 function formatDateEuropean(dateValue) {
   if (!dateValue) return '';
@@ -360,7 +397,7 @@ async function loadTrainings() {
       html += `
         <div class="training-card">
           <div class="training-image">
-            <img src="${item.image || 'images/training-placeholder.svg'}" alt="${item.title || 'Training'}">
+            <img src="${resolveImageUrl(item.image, 'images/training-placeholder.svg')}" alt="${item.title || 'Training'}">
           </div>
           <div class="training-content">
             <h2>${item.title || 'Training'}</h2>
@@ -497,7 +534,7 @@ async function loadSpeaking() {
       html += `
         <div class="speaking-item">
           <div class="speaking-image">
-            <img src="${item.image || 'images/speaking-placeholder.svg'}" alt="${item.title || 'Speaking Event'}">
+            <img src="${resolveImageUrl(item.image, 'images/speaking-placeholder.svg')}" alt="${item.title || 'Speaking Event'}">
           </div>
           <div class="speaking-details">
             <h2>${item.title || 'Event'}</h2>
@@ -605,7 +642,7 @@ async function loadPublications() {
       html += `
         <article class="publication-card">
           <div class="publication-image">
-            <img src="${item.image || 'images/publication-placeholder.svg'}" alt="${item.title || 'Publication'}">
+            <img src="${resolveImageUrl(item.image, 'images/publication-placeholder.svg')}" alt="${item.title || 'Publication'}">
           </div>
           <div class="publication-content">
             <div class="publication-meta">
@@ -697,7 +734,7 @@ function loadTrainingsDemo() {
       html += `
         <div class="training-card">
           <div class="training-image">
-            <img src="${item.image || 'images/training-placeholder.svg'}" alt="${item.title || 'Training'}">
+            <img src="${resolveImageUrl(item.image, 'images/training-placeholder.svg')}" alt="${item.title || 'Training'}">
           </div>
           <div class="training-content">
             <h2>${item.title || 'Training'}</h2>
@@ -817,7 +854,7 @@ function loadSpeakingDemo() {
       html += `
         <div class="speaking-item">
           <div class="speaking-image">
-            <img src="${item.image || 'images/speaking-placeholder.svg'}" alt="${item.title || 'Speaking Event'}">
+            <img src="${resolveImageUrl(item.image, 'images/speaking-placeholder.svg')}" alt="${item.title || 'Speaking Event'}">
           </div>
           <div class="speaking-details">
             <h2>${item.title || 'Event'}</h2>
@@ -908,7 +945,7 @@ function loadPublicationsDemo() {
       html += `
         <article class="publication-card">
           <div class="publication-image">
-            <img src="${item.image || 'images/publication-placeholder.svg'}" alt="${item.title || 'Publication'}">
+            <img src="${resolveImageUrl(item.image, 'images/publication-placeholder.svg')}" alt="${item.title || 'Publication'}">
           </div>
           <div class="publication-content">
             <div class="publication-meta">
