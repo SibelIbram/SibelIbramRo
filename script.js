@@ -692,6 +692,32 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Function to render speaking engagements
+function resolveLegacyImageUrl(imageValue, fallbackImage = 'images/speaking-placeholder.svg') {
+    if (!imageValue || typeof imageValue !== 'string') return fallbackImage;
+    const trimmed = imageValue.trim();
+    if (!trimmed) return fallbackImage;
+
+    if (
+        trimmed.startsWith('http://') ||
+        trimmed.startsWith('https://') ||
+        trimmed.startsWith('data:') ||
+        trimmed.startsWith('blob:')
+    ) {
+        return trimmed;
+    }
+
+    if (trimmed.startsWith('/Resources/') || trimmed.startsWith('Resources/')) {
+        const normalizedPath = trimmed.replace(/^\/+/, '');
+        return `https://firebasestorage.googleapis.com/v0/b/sibram.firebasestorage.app/o/${encodeURIComponent(normalizedPath)}?alt=media`;
+    }
+
+    if (/^[^\/\\]+\.(jpg|jpeg|png|gif|webp|svg)$/i.test(trimmed)) {
+        return `https://firebasestorage.googleapis.com/v0/b/sibram.firebasestorage.app/o/${encodeURIComponent(`Resources/${trimmed}`)}?alt=media`;
+    }
+
+    return trimmed;
+}
+
 function renderSpeakingEngagements(speakingData) {
     const speakingList = document.getElementById('speaking-list');
     if (!speakingList) return;
@@ -760,7 +786,7 @@ function renderSpeakingEngagements(speakingData) {
 
         speakingItem.innerHTML = `
             <div class="speaking-image">
-                <img src="${item.image}" alt="${item.title}">
+                <img src="${resolveLegacyImageUrl(item.image)}" alt="${item.title}">
             </div>
             <div class="speaking-details">
                 <h2>${item.title}</h2>
@@ -828,7 +854,12 @@ function loadSpeakingEngagements() {
     });
     */
 
-    // For now, use fallback data
+    // Do not override Firebase-rendered content if dynamic loader is present.
+    if (typeof window.reloadContent === 'function') {
+        return;
+    }
+
+    // For non-Firebase fallback scenarios only.
     renderSpeakingEngagements(fallbackData);
 }
 
