@@ -1,5 +1,14 @@
 // Admin App for Sibel Ibram Website
 // Handles authentication and content management for Trainings, Speaking, and Publications
+//
+// Firebase Storage rules (set in Firebase Console, not in this repo): the Media Library uses
+// listAll(), getDownloadURL(), put (via existing upload), and delete() on paths under
+// training/, speaking/, and publication/. Authenticated admins need at least:
+//   - allow read: if true;   // or tighter, if your site already uses token URLs
+//   - allow list, write, delete: if request.auth != null;
+// on each match block, e.g. match /training/{allPaths=**} { ... }
+// If list fails with storage/unauthorized, add allow list for those prefixes.
+// listAll() returns at most 1000 items per folder level (Firebase limit).
 
 let currentUser = null;
 let editingItemId = null;
@@ -128,6 +137,14 @@ window.switchCategory = function(category, clickedElement) {
   document.querySelectorAll('.tab-content').forEach(tab => {
     tab.classList.remove('active');
   });
+  
+  if (category === 'mediaLibrary') {
+    const mediaTab = document.getElementById('mediaLibraryTab');
+    if (mediaTab) mediaTab.classList.add('active');
+    setupFormHandlers();
+    loadMediaLibrary();
+    return;
+  }
   
   document.getElementById(category + 'Tab').classList.add('active');
   document.getElementById(category + 'ListTab').classList.add('active');
@@ -568,6 +585,7 @@ function generateInlineEditForm(category, itemId, item) {
           <div style="margin-bottom: 0.5rem;">
             <input type="file" id="edit-image-upload-${escapedItemId}" accept="image/*" style="display: none;" onchange="handleInlineImageUpload(event, 'training', '${escapedItemId}')">
             <label for="edit-image-upload-${escapedItemId}" class="file-upload-label">📷 Upload Image</label>
+            <button type="button" class="btn-small btn-edit" style="margin-left:0.5rem;" data-id-suffix="${encodeURIComponent(itemId)}" data-media-folder="training" onclick="openMediaPickerFromButton(this)">Choose from library</button>
             <span id="edit-image-status-${escapedItemId}" style="margin-left: 1rem; color: #666; font-size: 0.9rem;"></span>
           </div>
           <input type="url" id="edit-image-${escapedItemId}" class="edit-field" placeholder="https://example.com/image.jpg" value="${(item.image || '').replace(/"/g, '&quot;')}">
@@ -650,6 +668,7 @@ function generateInlineEditForm(category, itemId, item) {
           <div style="margin-bottom: 0.5rem;">
             <input type="file" id="edit-image-upload-${escapedItemId}" accept="image/*" style="display: none;" onchange="handleInlineImageUpload(event, 'speaking', '${escapedItemId}')">
             <label for="edit-image-upload-${escapedItemId}" class="file-upload-label">📷 Upload Image</label>
+            <button type="button" class="btn-small btn-edit" style="margin-left:0.5rem;" data-id-suffix="${encodeURIComponent(itemId)}" data-media-folder="speaking" onclick="openMediaPickerFromButton(this)">Choose from library</button>
             <span id="edit-image-status-${escapedItemId}" style="margin-left: 1rem; color: #666; font-size: 0.9rem;"></span>
           </div>
           <input type="url" id="edit-image-${escapedItemId}" class="edit-field" placeholder="https://example.com/image.jpg" value="${(item.image || '').replace(/"/g, '&quot;')}">
@@ -718,6 +737,7 @@ function generateInlineEditForm(category, itemId, item) {
           <div style="margin-bottom: 0.5rem;">
             <input type="file" id="edit-image-upload-${escapedItemId}" accept="image/*" style="display: none;" onchange="handleInlineImageUpload(event, 'publication', '${escapedItemId}')">
             <label for="edit-image-upload-${escapedItemId}" class="file-upload-label">📷 Upload Image</label>
+            <button type="button" class="btn-small btn-edit" style="margin-left:0.5rem;" data-id-suffix="${encodeURIComponent(itemId)}" data-media-folder="publication" onclick="openMediaPickerFromButton(this)">Choose from library</button>
             <span id="edit-image-status-${escapedItemId}" style="margin-left: 1rem; color: #666; font-size: 0.9rem;"></span>
           </div>
           <input type="url" id="edit-image-${escapedItemId}" class="edit-field" placeholder="https://example.com/image.jpg" value="${(item.image || '').replace(/"/g, '&quot;')}">
@@ -1488,6 +1508,472 @@ window.handleInlineImageUpload = async function(event, storageFolder, itemId) {
     event.target.value = '';
   }
 };
+
+// --- Media Library (Firebase Storage): listAll + thumbnails via <img> + CSS ---
+const MEDIA_STORAGE_PREFIXES = ['training', 'speaking', 'publication'];
+let mediaLibraryCache = null;
+let mediaPickerTargetInputId = null;
+
+function isImageStorageName(name) {
+  return /\.(jpe?g|png|gif|webp|svg|bmp)$/i.test(String(name || ''));
+}
+
+function getNameSortTimestamp(name) {
+  const m = String(name).match(/^(\d+)_/);
+  return m ? parseInt(m[1], 10) : 0;
+}
+
+function showMediaLibraryAlert(message, type) {
+  showAlert('mediaLibraryAlert', message, type);
+}
+
+async function listImageItemsInPrefix(prefix) {
+  const folderRef = storage.ref(prefix);
+  const listResult = await folderRef.listAll();
+  const out = [];
+  for (const itemRef of listResult.items) {
+    if (!isImageStorageName(itemRef.name)) continue;
+    out.push({
+      ref: itemRef,
+      fullPath: itemRef.fullPath,
+      name: itemRef.name,
+      folder: prefix
+    });
+  }
+  return out;
+}
+
+async function attachDownloadUrls(items) {
+  const chunk = 6;
+  const withUrls = [];
+  for (let i = 0; i < items.length; i += chunk) {
+    const slice = items.slice(i, i + chunk);
+    const resolved = await Promise.all(
+      slice.map(async (it) => ({
+        fullPath: it.fullPath,
+        name: it.name,
+        folder: it.folder,
+        ref: it.ref,
+        url: await it.ref.getDownloadURL()
+      }))
+    );
+    withUrls.push(...resolved);
+  }
+  return withUrls;
+}
+
+async function refreshMediaLibraryCache() {
+  if (typeof storage === 'undefined' || !storage || demoMode) {
+    mediaLibraryCache = [];
+    return mediaLibraryCache;
+  }
+  const flat = [];
+  for (const prefix of MEDIA_STORAGE_PREFIXES) {
+    const part = await listImageItemsInPrefix(prefix);
+    flat.push(...part);
+  }
+  mediaLibraryCache = await attachDownloadUrls(flat);
+  return mediaLibraryCache;
+}
+
+function filterAndSortMediaItems(items, folderVal, searchVal, sortVal) {
+  let list = items.slice();
+  if (folderVal && folderVal !== 'all') {
+    list = list.filter((it) => it.folder === folderVal);
+  }
+  const q = (searchVal || '').trim().toLowerCase();
+  if (q) {
+    list = list.filter(
+      (it) =>
+        it.name.toLowerCase().includes(q) ||
+        it.fullPath.toLowerCase().includes(q)
+    );
+  }
+  if (sortVal === 'name') {
+    list.sort((a, b) => a.name.localeCompare(b.name));
+  } else {
+    list.sort(
+      (a, b) => getNameSortTimestamp(b.name) - getNameSortTimestamp(a.name)
+    );
+  }
+  return list;
+}
+
+function clearMediaGrid(el) {
+  while (el.firstChild) el.removeChild(el.firstChild);
+}
+
+function renderManageMediaCards(container, items) {
+  clearMediaGrid(container);
+  if (!items.length) {
+    const p = document.createElement('p');
+    p.style.color = '#666';
+    p.textContent = 'No images match the current filters.';
+    container.appendChild(p);
+    return;
+  }
+  items.forEach((it) => {
+    const card = document.createElement('div');
+    card.className = 'media-library-card';
+    card.dataset.fullPath = it.fullPath;
+
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.title = 'Select for bulk delete';
+    chk.className = 'media-library-select-cb';
+    chk.style.margin = '0.35rem';
+    chk.onchange = function () {
+      card.classList.toggle('selected', chk.checked);
+    };
+
+    const img = document.createElement('img');
+    img.className = 'media-library-card-thumb';
+    img.loading = 'lazy';
+    img.alt = it.name;
+    img.src = it.url;
+    img.onclick = function (e) {
+      e.preventDefault();
+      chk.checked = !chk.checked;
+      card.classList.toggle('selected', chk.checked);
+    };
+
+    const body = document.createElement('div');
+    body.className = 'media-library-card-body';
+    const badge = document.createElement('span');
+    badge.className = 'media-library-card-badge';
+    badge.textContent = it.folder;
+    const nameEl = document.createElement('div');
+    nameEl.textContent = it.name;
+
+    const actions = document.createElement('div');
+    actions.className = 'media-library-card-actions';
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'btn-small btn-delete';
+    delBtn.textContent = 'Delete';
+    delBtn.onclick = function (e) {
+      e.stopPropagation();
+      deleteSingleMediaLibraryItem(it.fullPath, it.name);
+    };
+
+    body.appendChild(badge);
+    body.appendChild(nameEl);
+    actions.appendChild(delBtn);
+    card.appendChild(chk);
+    card.appendChild(img);
+    card.appendChild(body);
+    card.appendChild(actions);
+    container.appendChild(card);
+  });
+}
+
+function renderPickerMediaCards(container, items, onPick) {
+  clearMediaGrid(container);
+  if (!items.length) {
+    const p = document.createElement('p');
+    p.style.color = '#666';
+    p.textContent = 'No images match the current filters.';
+    container.appendChild(p);
+    return;
+  }
+  items.forEach((it) => {
+    const card = document.createElement('div');
+    card.className = 'media-library-card';
+    const img = document.createElement('img');
+    img.className = 'media-library-card-thumb';
+    img.loading = 'lazy';
+    img.alt = it.name;
+    img.src = it.url;
+    img.onclick = function () {
+      onPick(it.url);
+    };
+    const body = document.createElement('div');
+    body.className = 'media-library-card-body';
+    const badge = document.createElement('span');
+    badge.className = 'media-library-card-badge';
+    badge.textContent = it.folder;
+    const nameEl = document.createElement('div');
+    nameEl.textContent = it.name;
+    body.appendChild(badge);
+    body.appendChild(nameEl);
+    card.appendChild(img);
+    card.appendChild(body);
+    container.appendChild(card);
+  });
+}
+
+window.applyMediaLibraryFilters = function () {
+  const grid = document.getElementById('mediaLibraryGrid');
+  if (!grid) return;
+  if (!mediaLibraryCache) {
+    grid.innerHTML = '<p style="color:#666;">Loading…</p>';
+    return;
+  }
+  const folderVal =
+    document.getElementById('mediaLibraryFilterFolder')?.value || 'all';
+  const searchVal = document.getElementById('mediaLibrarySearch')?.value || '';
+  const sortVal = document.getElementById('mediaLibrarySort')?.value || 'newest';
+  const filtered = filterAndSortMediaItems(
+    mediaLibraryCache,
+    folderVal,
+    searchVal,
+    sortVal
+  );
+  renderManageMediaCards(grid, filtered);
+};
+
+window.loadMediaLibrary = async function () {
+  const grid = document.getElementById('mediaLibraryGrid');
+  const alertEl = document.getElementById('mediaLibraryAlert');
+  if (alertEl) alertEl.innerHTML = '';
+  if (!grid) return;
+  if (demoMode || typeof storage === 'undefined' || !storage) {
+    grid.innerHTML = '';
+    const p = document.createElement('p');
+    p.className = 'alert alert-error';
+    p.textContent =
+      'Media Library requires Firebase (not demo mode) and Storage to be initialized.';
+    grid.appendChild(p);
+    mediaLibraryCache = [];
+    return;
+  }
+  grid.innerHTML = '<p style="color:#666;">Loading library…</p>';
+  try {
+    await refreshMediaLibraryCache();
+    applyMediaLibraryFilters();
+  } catch (err) {
+    console.error('Media library load error:', err);
+    grid.innerHTML = '';
+    const p = document.createElement('p');
+    p.className = 'alert alert-error';
+    p.textContent =
+      'Could not load storage: ' + (err.message || getErrorMessage(err));
+    grid.appendChild(p);
+    showMediaLibraryAlert(
+      'Could not load storage: ' + (err.message || getErrorMessage(err)),
+      'error'
+    );
+  }
+};
+
+window.handleMediaLibraryFileUpload = async function (event) {
+  const file = event.target.files && event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  const folderSelect = document.getElementById('mediaLibraryUploadFolder');
+  const folder = folderSelect ? folderSelect.value : 'training';
+  try {
+    const { status } = await uploadImageAndGetUrl(file, folder);
+    await refreshMediaLibraryCache();
+    applyMediaLibraryFilters();
+    if (
+      document.getElementById('mediaPickerModal') &&
+      !document.getElementById('mediaPickerModal').classList.contains('hidden')
+    ) {
+      loadMediaPickerList();
+    }
+    showMediaLibraryAlert(
+      'Uploaded.' + (status === 'storage' ? ' Stored in Firebase Storage.' : ''),
+      'success'
+    );
+  } catch (err) {
+    console.error(err);
+    showMediaLibraryAlert(
+      'Upload failed: ' + (err.message || getErrorMessage(err)),
+      'error'
+    );
+  }
+};
+
+async function deleteSingleMediaLibraryItem(fullPath, displayName) {
+  if (
+    !confirm(
+      'Delete "' +
+        (displayName || fullPath) +
+        '" from Storage? This may break posts that still use this URL.'
+    )
+  ) {
+    return;
+  }
+  if (typeof storage === 'undefined' || !storage) return;
+  try {
+    await storage.ref(fullPath).delete();
+    await refreshMediaLibraryCache();
+    applyMediaLibraryFilters();
+    const modal = document.getElementById('mediaPickerModal');
+    if (modal && !modal.classList.contains('hidden')) {
+      loadMediaPickerList();
+    }
+    showMediaLibraryAlert('File deleted.', 'success');
+  } catch (err) {
+    console.error(err);
+    showMediaLibraryAlert(
+      'Delete failed: ' + (err.message || getErrorMessage(err)),
+      'error'
+    );
+  }
+}
+
+window.deleteSelectedMediaLibraryItems = async function () {
+  const grid = document.getElementById('mediaLibraryGrid');
+  if (!grid) return;
+  const checked = grid.querySelectorAll(
+    '.media-library-select-cb:checked'
+  );
+  if (!checked.length) {
+    showMediaLibraryAlert(
+      'Select one or more images (checkbox) first.',
+      'error'
+    );
+    return;
+  }
+  if (
+    !confirm(
+      'Delete ' +
+        checked.length +
+        ' file(s) from Storage? This may break posts that still use these URLs.'
+    )
+  ) {
+    return;
+  }
+  const paths = [];
+  checked.forEach(function (cb) {
+    const card = cb.closest('.media-library-card');
+    if (card && card.dataset.fullPath) paths.push(card.dataset.fullPath);
+  });
+  if (!paths.length) return;
+  if (typeof storage === 'undefined' || !storage) return;
+  try {
+    for (let i = 0; i < paths.length; i++) {
+      await storage.ref(paths[i]).delete();
+    }
+    await refreshMediaLibraryCache();
+    applyMediaLibraryFilters();
+    const modal = document.getElementById('mediaPickerModal');
+    if (modal && !modal.classList.contains('hidden')) {
+      loadMediaPickerList();
+    }
+    showMediaLibraryAlert(paths.length + ' file(s) deleted.', 'success');
+  } catch (err) {
+    console.error(err);
+    showMediaLibraryAlert(
+      'Bulk delete failed: ' + (err.message || getErrorMessage(err)),
+      'error'
+    );
+  }
+};
+
+window.openMediaPicker = async function (targetInputId, defaultFolder) {
+  mediaPickerTargetInputId = targetInputId;
+  const modal = document.getElementById('mediaPickerModal');
+  const folderSel = document.getElementById('mediaPickerFolderFilter');
+  if (folderSel) {
+    folderSel.value =
+      defaultFolder && defaultFolder !== 'all' ? defaultFolder : 'all';
+  }
+  const searchEl = document.getElementById('mediaPickerSearch');
+  if (searchEl) searchEl.value = '';
+  const sortEl = document.getElementById('mediaPickerSort');
+  if (sortEl) sortEl.value = 'newest';
+  if (modal) modal.classList.remove('hidden');
+  const grid = document.getElementById('mediaPickerGrid');
+  if (grid) grid.innerHTML = '<p style="color:#666;">Loading…</p>';
+  try {
+    await refreshMediaLibraryCache();
+    loadMediaPickerList();
+  } catch (err) {
+    if (grid) {
+      grid.innerHTML = '';
+      const p = document.createElement('p');
+      p.className = 'alert alert-error';
+      p.textContent = 'Could not load: ' + (err.message || getErrorMessage(err));
+      grid.appendChild(p);
+    }
+  }
+};
+
+window.openMediaPickerFromButton = function (btn) {
+  const suffix = btn.getAttribute('data-id-suffix');
+  const folder = btn.getAttribute('data-media-folder') || 'training';
+  let rawSuffix = suffix || '';
+  try {
+    rawSuffix = decodeURIComponent(rawSuffix);
+  } catch (e) {
+    rawSuffix = suffix;
+  }
+  openMediaPicker('edit-image-' + rawSuffix, folder);
+};
+
+window.loadMediaPickerList = function () {
+  const grid = document.getElementById('mediaPickerGrid');
+  if (!grid) return;
+  if (demoMode || typeof storage === 'undefined' || !storage) {
+    clearMediaGrid(grid);
+    const p = document.createElement('p');
+    p.className = 'alert alert-error';
+    p.textContent =
+      'Media Library requires Firebase Storage (not available in demo mode).';
+    grid.appendChild(p);
+    return;
+  }
+  if (!mediaLibraryCache) {
+    grid.innerHTML = '<p style="color:#666;">Loading…</p>';
+    return;
+  }
+  const folderVal =
+    document.getElementById('mediaPickerFolderFilter')?.value || 'all';
+  const searchVal = document.getElementById('mediaPickerSearch')?.value || '';
+  const sortVal = document.getElementById('mediaPickerSort')?.value || 'newest';
+  const filtered = filterAndSortMediaItems(
+    mediaLibraryCache,
+    folderVal,
+    searchVal,
+    sortVal
+  );
+  renderPickerMediaCards(grid, filtered, function (url) {
+    const inp = document.getElementById(mediaPickerTargetInputId);
+    if (inp) inp.value = url;
+    const statusMap = {
+      trainingImage: 'trainingImageStatus',
+      speakingImage: 'speakingImageStatus',
+      publicationImage: 'publicationImageStatus'
+    };
+    const stId = statusMap[mediaPickerTargetInputId];
+    const st = stId ? document.getElementById(stId) : null;
+    if (st) {
+      st.textContent = 'Selected from library';
+      st.style.color = '#27ae60';
+    }
+    if (
+      mediaPickerTargetInputId &&
+      mediaPickerTargetInputId.indexOf('edit-image-') === 0
+    ) {
+      const itemIdPart = mediaPickerTargetInputId.replace(/^edit-image-/, '');
+      const inlineStatus = document.getElementById(
+        'edit-image-status-' + itemIdPart
+      );
+      if (inlineStatus) {
+        inlineStatus.textContent = 'Selected from library';
+        inlineStatus.style.color = '#27ae60';
+      }
+    }
+    closeMediaPicker();
+  });
+};
+
+window.closeMediaPicker = function () {
+  const modal = document.getElementById('mediaPickerModal');
+  if (modal) modal.classList.add('hidden');
+  mediaPickerTargetInputId = null;
+};
+
+document.addEventListener('keydown', function (ev) {
+  if (ev.key !== 'Escape') return;
+  const modal = document.getElementById('mediaPickerModal');
+  if (modal && !modal.classList.contains('hidden')) {
+    closeMediaPicker();
+  }
+});
 
 // Utility functions
 function showLogin() {
