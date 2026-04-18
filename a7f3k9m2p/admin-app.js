@@ -1382,13 +1382,50 @@ function readFileAsDataURL(file) {
   });
 }
 
+function getStorageUploadUserMessage(err) {
+  if (!err) return 'Unknown error';
+  const code = err.code || '';
+  const msg = String(err.message || err);
+  if (code === 'storage/unauthorized') {
+    return 'Storage rejected the upload (unauthorized). Update Storage rules so authenticated admins can write under training/, speaking/, and publication/.';
+  }
+  if (code === 'storage/canceled') {
+    return 'Upload was canceled or timed out. If this repeats, Storage rules or network may be blocking uploads from this site.';
+  }
+  if (/CORS|ERR_FAILED|NetworkError|Failed to fetch/i.test(msg)) {
+    return 'Upload failed (often shown as CORS in the console when Storage returns 403). Fix Firebase Storage rules to allow write for signed-in users on training/, speaking/, publication/. Also ensure https://sibelibram.ro is listed under Authentication → Settings → Authorized domains.';
+  }
+  return msg;
+}
+
+const STORAGE_UPLOAD_TIMEOUT_MS = 45000;
+
 async function firebaseStoragePutAndGetUrl(file, storageFolder) {
   const timestamp = Date.now();
   const relativePath = `${storageFolder}/${timestamp}_${file.name}`;
   const storageRef = storage.ref().child(relativePath);
-  const snapshot = await storageRef.put(file);
-  const url = await snapshot.ref.getDownloadURL();
-  return { url, fullPath: snapshot.ref.fullPath };
+  const metadata = {
+    contentType: file.type || 'application/octet-stream'
+  };
+  const uploadTask = storageRef.put(file, metadata);
+  const timeoutId = setTimeout(function () {
+    try {
+      if (uploadTask && typeof uploadTask.cancel === 'function') {
+        uploadTask.cancel();
+      }
+    } catch (e) {
+      /* ignore */
+    }
+  }, STORAGE_UPLOAD_TIMEOUT_MS);
+  try {
+    const snapshot = await uploadTask;
+    clearTimeout(timeoutId);
+    const url = await snapshot.ref.getDownloadURL();
+    return { url, fullPath: snapshot.ref.fullPath };
+  } catch (e) {
+    clearTimeout(timeoutId);
+    throw e;
+  }
 }
 
 /**
@@ -1410,6 +1447,9 @@ async function uploadImageAndGetUrl(file, storageFolder) {
 
   if (useStorage) {
     try {
+      if (typeof auth !== 'undefined' && auth && !demoMode && !auth.currentUser) {
+        throw new Error('Not signed in. Log in again, then upload the image.');
+      }
       console.log('Uploading to Firebase Storage...');
       const { url, fullPath } = await firebaseStoragePutAndGetUrl(file, storageFolder);
       console.log('Image uploaded to Firebase Storage:', url);
@@ -1420,12 +1460,15 @@ async function uploadImageAndGetUrl(file, storageFolder) {
       return { url, status: 'storage' };
     } catch (storageError) {
       console.error('Image upload error:', storageError);
+      const userMsg = getStorageUploadUserMessage(storageError);
       if (file.size <= IMAGE_MAX_BASE64) {
         console.log('Firebase Storage failed, trying base64 fallback...');
         const url = await readFileAsDataURL(file);
-        return { url, status: 'base64-fallback' };
+        return { url, status: 'base64-fallback', _storageErrorHint: userMsg };
       }
-      throw storageError;
+      const wrapped = new Error(userMsg);
+      wrapped.cause = storageError;
+      throw wrapped;
     }
   }
 
@@ -1437,8 +1480,9 @@ async function uploadImageAndGetUrl(file, storageFolder) {
   return { url, status: 'base64' };
 }
 
-function setImageUploadStatusMessage(statusEl, resultStatus) {
+function setImageUploadStatusMessage(statusEl, resultStatus, storageHint) {
   if (!statusEl) return;
+  statusEl.removeAttribute('title');
   if (resultStatus === 'storage') {
     statusEl.textContent = '✅ Uploaded to Firebase Storage';
     statusEl.style.color = '#27ae60';
@@ -1446,8 +1490,12 @@ function setImageUploadStatusMessage(statusEl, resultStatus) {
     statusEl.textContent = '✅ Image converted to base64 (demo mode)';
     statusEl.style.color = '#27ae60';
   } else if (resultStatus === 'base64-fallback') {
-    statusEl.textContent = '⚠️ Using base64 (Storage failed)';
+    statusEl.textContent =
+      '⚠️ Embedded in post (Storage upload blocked — hover for hint)';
     statusEl.style.color = '#f39c12';
+    if (storageHint) {
+      statusEl.setAttribute('title', storageHint);
+    }
   }
 }
 
@@ -1463,12 +1511,17 @@ window.handleImageUpload = async function(event, category) {
   statusElement.style.color = '#666';
 
   try {
-    const { url, status } = await uploadImageAndGetUrl(file, category);
-    imageUrlField.value = url;
-    setImageUploadStatusMessage(statusElement, status);
+    const result = await uploadImageAndGetUrl(file, category);
+    imageUrlField.value = result.url;
+    setImageUploadStatusMessage(
+      statusElement,
+      result.status,
+      result._storageErrorHint
+    );
   } catch (error) {
     console.error('Image upload error:', error);
-    statusElement.textContent = '❌ Upload failed: ' + (error.message || 'Unknown error');
+    statusElement.textContent =
+      '❌ Upload failed: ' + (error.message || 'Unknown error');
     statusElement.style.color = '#e74c3c';
   } finally {
     event.target.value = '';
@@ -1497,9 +1550,13 @@ window.handleInlineImageUpload = async function(event, storageFolder, itemId) {
   }
 
   try {
-    const { url, status } = await uploadImageAndGetUrl(file, storageFolder);
-    imageUrlField.value = url;
-    setImageUploadStatusMessage(statusElement, status);
+    const result = await uploadImageAndGetUrl(file, storageFolder);
+    imageUrlField.value = result.url;
+    setImageUploadStatusMessage(
+      statusElement,
+      result.status,
+      result._storageErrorHint
+    );
   } catch (error) {
     console.error('Inline image upload error:', error);
     if (statusElement) {
@@ -1782,7 +1839,11 @@ window.loadMediaLibrary = async function () {
     await refreshMediaLibraryCache();
     applyMediaLibraryFilters();
   } catch (err) {
-    console.error('Media library load error:', err);
+    if (err && err.code === 'permission-denied') {
+      console.warn('Media library (Firestore index): permission denied — add rules for', MEDIA_LIBRARY_ASSETS_COLLECTION);
+    } else {
+      console.error('Media library load error:', err);
+    }
     grid.innerHTML = '';
     const p = document.createElement('p');
     p.className = 'alert alert-error';
