@@ -1,14 +1,11 @@
 // Admin App for Sibel Ibram Website
 // Handles authentication and content management for Trainings, Speaking, and Publications
 //
-// Firebase Storage rules (set in Firebase Console, not in this repo): the Media Library uses
-// listAll(), getDownloadURL(), put (via existing upload), and delete() on paths under
-// training/, speaking/, and publication/. Authenticated admins need at least:
-//   - allow read: if true;   // or tighter, if your site already uses token URLs
-//   - allow list, write, delete: if request.auth != null;
-// on each match block, e.g. match /training/{allPaths=**} { ... }
-// If list fails with storage/unauthorized, add allow list for those prefixes.
-// listAll() returns at most 1000 items per folder level (Firebase limit).
+// Media Library: indexed in Firestore collection "mediaLibraryAssets" (no Storage listAll in browser).
+// Each successful Storage upload writes { storagePath, url, folder, fileName, createdAt }.
+// Firestore rules: allow authenticated admins read + create + delete on mediaLibraryAssets.
+// Storage rules: still need write + delete on training|speaking|publication paths for upload/remove.
+// Legacy files only in Storage (never indexed) will not appear until re-uploaded or indexed manually.
 
 let currentUser = null;
 let editingItemId = null;
@@ -1387,10 +1384,11 @@ function readFileAsDataURL(file) {
 
 async function firebaseStoragePutAndGetUrl(file, storageFolder) {
   const timestamp = Date.now();
-  const fileName = `${storageFolder}/${timestamp}_${file.name}`;
-  const storageRef = storage.ref().child(fileName);
+  const relativePath = `${storageFolder}/${timestamp}_${file.name}`;
+  const storageRef = storage.ref().child(relativePath);
   const snapshot = await storageRef.put(file);
-  return snapshot.ref.getDownloadURL();
+  const url = await snapshot.ref.getDownloadURL();
+  return { url, fullPath: snapshot.ref.fullPath };
 }
 
 /**
@@ -1413,8 +1411,12 @@ async function uploadImageAndGetUrl(file, storageFolder) {
   if (useStorage) {
     try {
       console.log('Uploading to Firebase Storage...');
-      const url = await firebaseStoragePutAndGetUrl(file, storageFolder);
+      const { url, fullPath } = await firebaseStoragePutAndGetUrl(file, storageFolder);
       console.log('Image uploaded to Firebase Storage:', url);
+      // Do not await: Firestore index is optional for UX; a slow/denied rules write must not block the post image upload.
+      recordMediaLibraryAsset(fullPath, url, storageFolder, file.name).catch(function (e) {
+        console.warn('mediaLibraryAssets index (non-blocking):', e);
+      });
       return { url, status: 'storage' };
     } catch (storageError) {
       console.error('Image upload error:', storageError);
@@ -1509,13 +1511,47 @@ window.handleInlineImageUpload = async function(event, storageFolder, itemId) {
   }
 };
 
-// --- Media Library (Firebase Storage): listAll + thumbnails via <img> + CSS ---
-const MEDIA_STORAGE_PREFIXES = ['training', 'speaking', 'publication'];
+// --- Media Library: Firestore index + Storage for upload/delete (avoids browser listAll / CORS issues) ---
+const MEDIA_LIBRARY_ASSETS_COLLECTION = 'mediaLibraryAssets';
 let mediaLibraryCache = null;
 let mediaPickerTargetInputId = null;
 
-function isImageStorageName(name) {
-  return /\.(jpe?g|png|gif|webp|svg|bmp)$/i.test(String(name || ''));
+async function recordMediaLibraryAsset(fullPath, url, folder, originalFileName) {
+  if (demoMode || typeof db === 'undefined' || !db) return;
+  try {
+    const row = {
+      storagePath: fullPath,
+      url: url,
+      folder: folder,
+      fileName: originalFileName || fullPath.split('/').pop() || 'image'
+    };
+    if (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue) {
+      row.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+    } else {
+      row.createdAt = new Date().toISOString();
+    }
+    await db.collection(MEDIA_LIBRARY_ASSETS_COLLECTION).add(row);
+  } catch (err) {
+    console.warn('mediaLibraryAssets write failed:', err);
+  }
+}
+
+async function deleteMediaLibraryFirestoreDocsForPath(fullPath) {
+  if (demoMode || typeof db === 'undefined' || !db) return;
+  try {
+    const qs = await db
+      .collection(MEDIA_LIBRARY_ASSETS_COLLECTION)
+      .where('storagePath', '==', fullPath)
+      .get();
+    if (qs.size === 0) return;
+    const batch = db.batch();
+    qs.forEach(function (doc) {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
+  } catch (err) {
+    console.warn('mediaLibraryAssets delete failed:', err);
+  }
 }
 
 function getNameSortTimestamp(name) {
@@ -1523,56 +1559,53 @@ function getNameSortTimestamp(name) {
   return m ? parseInt(m[1], 10) : 0;
 }
 
+function getMediaItemSortTime(it) {
+  if (typeof it.createdAtMs === 'number' && it.createdAtMs > 0) {
+    return it.createdAtMs;
+  }
+  return getNameSortTimestamp(it.name);
+}
+
 function showMediaLibraryAlert(message, type) {
   showAlert('mediaLibraryAlert', message, type);
 }
 
-async function listImageItemsInPrefix(prefix) {
-  const folderRef = storage.ref(prefix);
-  const listResult = await folderRef.listAll();
-  const out = [];
-  for (const itemRef of listResult.items) {
-    if (!isImageStorageName(itemRef.name)) continue;
-    out.push({
-      ref: itemRef,
-      fullPath: itemRef.fullPath,
-      name: itemRef.name,
-      folder: prefix
-    });
-  }
-  return out;
-}
-
-async function attachDownloadUrls(items) {
-  const chunk = 6;
-  const withUrls = [];
-  for (let i = 0; i < items.length; i += chunk) {
-    const slice = items.slice(i, i + chunk);
-    const resolved = await Promise.all(
-      slice.map(async (it) => ({
-        fullPath: it.fullPath,
-        name: it.name,
-        folder: it.folder,
-        ref: it.ref,
-        url: await it.ref.getDownloadURL()
-      }))
-    );
-    withUrls.push(...resolved);
-  }
-  return withUrls;
-}
-
 async function refreshMediaLibraryCache() {
-  if (typeof storage === 'undefined' || !storage || demoMode) {
+  if (demoMode) {
     mediaLibraryCache = [];
     return mediaLibraryCache;
   }
-  const flat = [];
-  for (const prefix of MEDIA_STORAGE_PREFIXES) {
-    const part = await listImageItemsInPrefix(prefix);
-    flat.push(...part);
+  if (typeof db === 'undefined' || !db) {
+    mediaLibraryCache = [];
+    return mediaLibraryCache;
   }
-  mediaLibraryCache = await attachDownloadUrls(flat);
+  const snap = await db.collection(MEDIA_LIBRARY_ASSETS_COLLECTION).get();
+  const items = [];
+  snap.forEach(function (doc) {
+    const d = doc.data();
+    if (!d.url || !d.storagePath) return;
+    let createdAtMs = 0;
+    if (d.createdAt) {
+      if (typeof d.createdAt.toMillis === 'function') {
+        createdAtMs = d.createdAt.toMillis();
+      } else if (typeof d.createdAt === 'number') {
+        createdAtMs = d.createdAt;
+      } else if (typeof d.createdAt === 'string') {
+        createdAtMs = Date.parse(d.createdAt) || 0;
+      }
+    }
+    const name = d.fileName || String(d.storagePath).split('/').pop() || 'file';
+    const folder = d.folder || String(d.storagePath).split('/')[0] || 'training';
+    items.push({
+      fullPath: d.storagePath,
+      name: name,
+      folder: folder,
+      url: d.url,
+      createdAtMs: createdAtMs,
+      ref: null
+    });
+  });
+  mediaLibraryCache = items;
   return mediaLibraryCache;
 }
 
@@ -1592,9 +1625,7 @@ function filterAndSortMediaItems(items, folderVal, searchVal, sortVal) {
   if (sortVal === 'name') {
     list.sort((a, b) => a.name.localeCompare(b.name));
   } else {
-    list.sort(
-      (a, b) => getNameSortTimestamp(b.name) - getNameSortTimestamp(a.name)
-    );
+    list.sort((a, b) => getMediaItemSortTime(b) - getMediaItemSortTime(a));
   }
   return list;
 }
@@ -1727,12 +1758,21 @@ window.loadMediaLibrary = async function () {
   const alertEl = document.getElementById('mediaLibraryAlert');
   if (alertEl) alertEl.innerHTML = '';
   if (!grid) return;
-  if (demoMode || typeof storage === 'undefined' || !storage) {
+  if (demoMode) {
+    grid.innerHTML = '';
+    const p = document.createElement('p');
+    p.className = 'alert alert-error';
+    p.textContent = 'Media Library is not available in demo mode.';
+    grid.appendChild(p);
+    mediaLibraryCache = [];
+    return;
+  }
+  if (typeof db === 'undefined' || !db) {
     grid.innerHTML = '';
     const p = document.createElement('p');
     p.className = 'alert alert-error';
     p.textContent =
-      'Media Library requires Firebase (not demo mode) and Storage to be initialized.';
+      'Media Library requires Firestore. Check firebase-config.js.';
     grid.appendChild(p);
     mediaLibraryCache = [];
     return;
@@ -1747,10 +1787,14 @@ window.loadMediaLibrary = async function () {
     const p = document.createElement('p');
     p.className = 'alert alert-error';
     p.textContent =
-      'Could not load storage: ' + (err.message || getErrorMessage(err));
+      'Could not load media index (Firestore): ' +
+      (err.message || getErrorMessage(err)) +
+      ' — ensure rules allow read on collection "' +
+      MEDIA_LIBRARY_ASSETS_COLLECTION +
+      '" for signed-in admins.';
     grid.appendChild(p);
     showMediaLibraryAlert(
-      'Could not load storage: ' + (err.message || getErrorMessage(err)),
+      'Could not load media index: ' + (err.message || getErrorMessage(err)),
       'error'
     );
   }
@@ -1760,6 +1804,10 @@ window.handleMediaLibraryFileUpload = async function (event) {
   const file = event.target.files && event.target.files[0];
   event.target.value = '';
   if (!file) return;
+  if (typeof storage === 'undefined' || !storage) {
+    showMediaLibraryAlert('Upload requires Firebase Storage to be initialized.', 'error');
+    return;
+  }
   const folderSelect = document.getElementById('mediaLibraryUploadFolder');
   const folder = folderSelect ? folderSelect.value : 'training';
   try {
@@ -1795,9 +1843,17 @@ async function deleteSingleMediaLibraryItem(fullPath, displayName) {
   ) {
     return;
   }
-  if (typeof storage === 'undefined' || !storage) return;
   try {
-    await storage.ref(fullPath).delete();
+    if (typeof storage !== 'undefined' && storage) {
+      try {
+        await storage.ref(fullPath).delete();
+      } catch (delErr) {
+        if (delErr.code !== 'storage/object-not-found') {
+          throw delErr;
+        }
+      }
+    }
+    await deleteMediaLibraryFirestoreDocsForPath(fullPath);
     await refreshMediaLibraryCache();
     applyMediaLibraryFilters();
     const modal = document.getElementById('mediaPickerModal');
@@ -1842,10 +1898,19 @@ window.deleteSelectedMediaLibraryItems = async function () {
     if (card && card.dataset.fullPath) paths.push(card.dataset.fullPath);
   });
   if (!paths.length) return;
-  if (typeof storage === 'undefined' || !storage) return;
   try {
     for (let i = 0; i < paths.length; i++) {
-      await storage.ref(paths[i]).delete();
+      const pth = paths[i];
+      if (typeof storage !== 'undefined' && storage) {
+        try {
+          await storage.ref(pth).delete();
+        } catch (delErr) {
+          if (delErr.code !== 'storage/object-not-found') {
+            throw delErr;
+          }
+        }
+      }
+      await deleteMediaLibraryFirestoreDocsForPath(pth);
     }
     await refreshMediaLibraryCache();
     applyMediaLibraryFilters();
@@ -1907,12 +1972,12 @@ window.openMediaPickerFromButton = function (btn) {
 window.loadMediaPickerList = function () {
   const grid = document.getElementById('mediaPickerGrid');
   if (!grid) return;
-  if (demoMode || typeof storage === 'undefined' || !storage) {
+  if (demoMode || typeof db === 'undefined' || !db) {
     clearMediaGrid(grid);
     const p = document.createElement('p');
     p.className = 'alert alert-error';
     p.textContent =
-      'Media Library requires Firebase Storage (not available in demo mode).';
+      'Media Library requires Firebase Firestore (not available in demo mode).';
     grid.appendChild(p);
     return;
   }

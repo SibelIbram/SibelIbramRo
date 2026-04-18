@@ -953,7 +953,7 @@
       <div id="mediaLibraryTab" class="tab-content">
         <div id="mediaLibraryAlert"></div>
         <p style="color: #666; margin-bottom: 1rem; font-size: 0.95rem;">
-          Browse images in Firebase Storage (training, speaking, publication folders). Previews use the full image URL scaled in the browser.
+          The library lists images from the Firestore index <code>mediaLibraryAssets</code> (each upload from this admin is added automatically). Previews use the stored download URL scaled in the browser. Older files that were never indexed only appear after you upload again from here or from a post, or after you add them to that collection manually.
         </p>
         <div class="media-library-toolbar">
           <button type="button" class="btn-small btn-edit" onclick="loadMediaLibrary()">Refresh</button>
