@@ -565,6 +565,11 @@ function generateInlineEditForm(category, itemId, item) {
         </div>
         <div class="form-group">
           <label>Image URL</label>
+          <div style="margin-bottom: 0.5rem;">
+            <input type="file" id="edit-image-upload-${escapedItemId}" accept="image/*" style="display: none;" onchange="handleInlineImageUpload(event, 'training', '${escapedItemId}')">
+            <label for="edit-image-upload-${escapedItemId}" class="file-upload-label">📷 Upload Image</label>
+            <span id="edit-image-status-${escapedItemId}" style="margin-left: 1rem; color: #666; font-size: 0.9rem;"></span>
+          </div>
           <input type="url" id="edit-image-${escapedItemId}" class="edit-field" placeholder="https://example.com/image.jpg" value="${(item.image || '').replace(/"/g, '&quot;')}">
         </div>
         <div class="form-group">
@@ -642,6 +647,11 @@ function generateInlineEditForm(category, itemId, item) {
         </div>
         <div class="form-group">
           <label>Image URL</label>
+          <div style="margin-bottom: 0.5rem;">
+            <input type="file" id="edit-image-upload-${escapedItemId}" accept="image/*" style="display: none;" onchange="handleInlineImageUpload(event, 'speaking', '${escapedItemId}')">
+            <label for="edit-image-upload-${escapedItemId}" class="file-upload-label">📷 Upload Image</label>
+            <span id="edit-image-status-${escapedItemId}" style="margin-left: 1rem; color: #666; font-size: 0.9rem;"></span>
+          </div>
           <input type="url" id="edit-image-${escapedItemId}" class="edit-field" placeholder="https://example.com/image.jpg" value="${(item.image || '').replace(/"/g, '&quot;')}">
         </div>
         <div class="form-group">
@@ -705,6 +715,11 @@ function generateInlineEditForm(category, itemId, item) {
         </div>
         <div class="form-group">
           <label>Image URL</label>
+          <div style="margin-bottom: 0.5rem;">
+            <input type="file" id="edit-image-upload-${escapedItemId}" accept="image/*" style="display: none;" onchange="handleInlineImageUpload(event, 'publication', '${escapedItemId}')">
+            <label for="edit-image-upload-${escapedItemId}" class="file-upload-label">📷 Upload Image</label>
+            <span id="edit-image-status-${escapedItemId}" style="margin-left: 1rem; color: #666; font-size: 0.9rem;"></span>
+          </div>
           <input type="url" id="edit-image-${escapedItemId}" class="edit-field" placeholder="https://example.com/image.jpg" value="${(item.image || '').replace(/"/g, '&quot;')}">
         </div>
         <div class="form-group">
@@ -781,6 +796,17 @@ window.toggleEditItem = async function(category, itemId) {
   }
 };
 
+// Clear inline image upload widget (file + status) when opening edit
+function resetInlineImageUploadUI(itemId) {
+  const fileInput = document.getElementById('edit-image-upload-' + itemId);
+  if (fileInput) fileInput.value = '';
+  const statusEl = document.getElementById('edit-image-status-' + itemId);
+  if (statusEl) {
+    statusEl.textContent = '';
+    statusEl.style.color = '#666';
+  }
+}
+
 // Fill inline edit form with item data
 function fillInlineEditForm(category, itemId, item) {
   document.getElementById(`edit-title-${itemId}`).value = item.title || '';
@@ -838,6 +864,8 @@ function fillInlineEditForm(category, itemId, item) {
     const langSelect = document.getElementById(`edit-language-${itemId}`);
     if (langSelect) langSelect.value = item.language || 'en';
   }
+
+  resetInlineImageUploadUI(itemId);
 }
 
 // Save inline edit
@@ -1320,110 +1348,144 @@ async function handleDocxUpload(event, category) {
   }
 }
 
+// Image upload limits (same as previous handleImageUpload)
+const IMAGE_MAX_BASE64 = 5 * 1024 * 1024; // 5MB
+const IMAGE_MAX_STORAGE = 10 * 1024 * 1024; // 10MB
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = function() {
+      resolve(reader.result);
+    };
+    reader.onerror = function() {
+      reject(new Error('Error reading file'));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function firebaseStoragePutAndGetUrl(file, storageFolder) {
+  const timestamp = Date.now();
+  const fileName = `${storageFolder}/${timestamp}_${file.name}`;
+  const storageRef = storage.ref().child(fileName);
+  const snapshot = await storageRef.put(file);
+  return snapshot.ref.getDownloadURL();
+}
+
+/**
+ * Upload image to Firebase Storage when available; otherwise base64 (demo).
+ * On Storage failure, falls back to base64 if file is small enough.
+ * @param {File} file
+ * @param {string} storageFolder - 'training' | 'speaking' | 'publication' (matches existing paths)
+ * @returns {Promise<{ url: string, status: 'storage'|'base64'|'base64-fallback' }>}
+ */
+async function uploadImageAndGetUrl(file, storageFolder) {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Please select an image file');
+  }
+  if (file.size > IMAGE_MAX_STORAGE) {
+    throw new Error('Image too large (max 10MB)');
+  }
+
+  const useStorage = typeof storage !== 'undefined' && storage !== null && firebaseInitialized;
+
+  if (useStorage) {
+    try {
+      console.log('Uploading to Firebase Storage...');
+      const url = await firebaseStoragePutAndGetUrl(file, storageFolder);
+      console.log('Image uploaded to Firebase Storage:', url);
+      return { url, status: 'storage' };
+    } catch (storageError) {
+      console.error('Image upload error:', storageError);
+      if (file.size <= IMAGE_MAX_BASE64) {
+        console.log('Firebase Storage failed, trying base64 fallback...');
+        const url = await readFileAsDataURL(file);
+        return { url, status: 'base64-fallback' };
+      }
+      throw storageError;
+    }
+  }
+
+  if (file.size > IMAGE_MAX_BASE64) {
+    throw new Error('Image too large for demo mode (max 5MB). Use Firebase Storage for larger images.');
+  }
+  console.log('Using base64 encoding (demo mode)...');
+  const url = await readFileAsDataURL(file);
+  return { url, status: 'base64' };
+}
+
+function setImageUploadStatusMessage(statusEl, resultStatus) {
+  if (!statusEl) return;
+  if (resultStatus === 'storage') {
+    statusEl.textContent = '✅ Uploaded to Firebase Storage';
+    statusEl.style.color = '#27ae60';
+  } else if (resultStatus === 'base64') {
+    statusEl.textContent = '✅ Image converted to base64 (demo mode)';
+    statusEl.style.color = '#27ae60';
+  } else if (resultStatus === 'base64-fallback') {
+    statusEl.textContent = '⚠️ Using base64 (Storage failed)';
+    statusEl.style.color = '#f39c12';
+  }
+}
+
 // Image upload handler - supports Firebase Storage and base64 fallback
 window.handleImageUpload = async function(event, category) {
   const file = event.target.files[0];
   if (!file) return;
-  
-  // Validate file type
-  if (!file.type.startsWith('image/')) {
-    const statusElement = document.getElementById(category + 'ImageStatus');
-    statusElement.textContent = '❌ Please select an image file';
-    statusElement.style.color = '#e74c3c';
-    return;
-  }
-  
-  // Validate file size (max 5MB for base64, 10MB for Firebase Storage)
-  const maxSizeBase64 = 5 * 1024 * 1024; // 5MB
-  const maxSizeStorage = 10 * 1024 * 1024; // 10MB
-  
-  if (file.size > maxSizeStorage) {
-    const statusElement = document.getElementById(category + 'ImageStatus');
-    statusElement.textContent = '❌ Image too large (max 10MB)';
-    statusElement.style.color = '#e74c3c';
-    return;
-  }
-  
+
   const statusElement = document.getElementById(category + 'ImageStatus');
   const imageUrlField = document.getElementById(category + 'Image');
-  
+
   statusElement.textContent = 'Uploading...';
   statusElement.style.color = '#666';
-  
+
   try {
-    let imageUrl = '';
-    
-    // Check if Firebase Storage is available
-    if (typeof storage !== 'undefined' && storage !== null && firebaseInitialized) {
-      // Use Firebase Storage
-      console.log('Uploading to Firebase Storage...');
-      
-      // Generate unique filename
-      const timestamp = Date.now();
-      const fileName = `${category}/${timestamp}_${file.name}`;
-      const storageRef = storage.ref().child(fileName);
-      
-      // Upload file
-      const snapshot = await storageRef.put(file);
-      imageUrl = await snapshot.ref.getDownloadURL();
-      
-      statusElement.textContent = '✅ Uploaded to Firebase Storage';
-      statusElement.style.color = '#27ae60';
-      console.log('Image uploaded to Firebase Storage:', imageUrl);
-      
-    } else {
-      // Fallback to base64 encoding (for demo mode or when Storage is not available)
-      console.log('Using base64 encoding (demo mode)...');
-      
-      if (file.size > maxSizeBase64) {
-        statusElement.textContent = '⚠️ Image too large for demo mode (max 5MB). Use Firebase Storage for larger images.';
-        statusElement.style.color = '#f39c12';
-        return;
-      }
-      
-      // Convert to base64
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const base64String = e.target.result;
-        imageUrlField.value = base64String;
-        statusElement.textContent = '✅ Image converted to base64 (demo mode)';
-        statusElement.style.color = '#27ae60';
-        console.log('Image converted to base64');
-      };
-      reader.onerror = function() {
-        statusElement.textContent = '❌ Error reading file';
-        statusElement.style.color = '#e74c3c';
-      };
-      reader.readAsDataURL(file);
-      return; // Exit early, base64 conversion is async
-    }
-    
-    // Set the URL in the input field
-    if (imageUrl) {
-      imageUrlField.value = imageUrl;
-    }
-    
+    const { url, status } = await uploadImageAndGetUrl(file, category);
+    imageUrlField.value = url;
+    setImageUploadStatusMessage(statusElement, status);
   } catch (error) {
     console.error('Image upload error:', error);
     statusElement.textContent = '❌ Upload failed: ' + (error.message || 'Unknown error');
     statusElement.style.color = '#e74c3c';
-    
-    // If Firebase Storage fails, try base64 as fallback
-    if (file.size <= maxSizeBase64) {
-      console.log('Firebase Storage failed, trying base64 fallback...');
-      try {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const base64String = e.target.result;
-          imageUrlField.value = base64String;
-          statusElement.textContent = '⚠️ Using base64 (Storage failed)';
-          statusElement.style.color = '#f39c12';
-        };
-        reader.readAsDataURL(file);
-      } catch (base64Error) {
-        console.error('Base64 conversion also failed:', base64Error);
-      }
+  } finally {
+    event.target.value = '';
+  }
+};
+
+/**
+ * Inline edit image upload. storageFolder: 'training' | 'speaking' | 'publication'
+ * itemId must match DOM suffix used in edit-image-${itemId} (same as saveInlineEdit).
+ */
+window.handleInlineImageUpload = async function(event, storageFolder, itemId) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const statusElement = document.getElementById('edit-image-status-' + itemId);
+  const imageUrlField = document.getElementById('edit-image-' + itemId);
+
+  if (!imageUrlField) {
+    console.error('Inline edit image field not found:', itemId);
+    return;
+  }
+
+  if (statusElement) {
+    statusElement.textContent = 'Uploading...';
+    statusElement.style.color = '#666';
+  }
+
+  try {
+    const { url, status } = await uploadImageAndGetUrl(file, storageFolder);
+    imageUrlField.value = url;
+    setImageUploadStatusMessage(statusElement, status);
+  } catch (error) {
+    console.error('Inline image upload error:', error);
+    if (statusElement) {
+      statusElement.textContent = '❌ Upload failed: ' + (error.message || 'Unknown error');
+      statusElement.style.color = '#e74c3c';
     }
+  } finally {
+    event.target.value = '';
   }
 };
 
